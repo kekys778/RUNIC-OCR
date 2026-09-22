@@ -120,13 +120,13 @@ run_eval("qwen25vl-7b")              # CER / WER / NED / SeqAcc + бутстрэ
 
 ## Где лежат большие артефакты
 
-В git не помещаются веса моделей и полный синтетический корпус (~11 ГБ). Они хранятся здесь (сейчас **приватно**):
+В git не помещаются веса моделей и полный синтетический корпус (~11 ГБ). Они хранятся здесь:
 
 | Артефакт | Где |
 |---|---|
-| Лучшие QLoRA-адаптеры Qwen2.5-VL-7B / Qwen3-VL-8B / Qwen3-VL-2B | HF: `AntoniusPerf/runic-ocr-qwen-vl-lora` |
-| Чекпойнты TrOCR (LoRA) | HF: `AntoniusPerf/trocr-checkpoints` |
-| Синтетический корпус ВКР (SD3 + Canny, 4 647 изобр.) | Kaggle: `zhopa228/synth-final` |
+| Лучшие QLoRA-адаптеры Qwen2.5-VL-7B / Qwen3-VL-8B / Qwen3-VL-2B | **публично:** [HF `AntoniusPerf/runic-ocr-qwen-vl-lora`](https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora) |
+| Чекпойнты TrOCR (LoRA) | HF: `AntoniusPerf/trocr-checkpoints` (приватно) |
+| Синтетический корпус ВКР (SD3 + Canny, 4 647 изобр.) | Kaggle: `zhopa228/synth-final` (приватно) |
 | Gold set | Kaggle: `zhopa228/val-dataset` (копия — в `data/gold_set/`) |
 | Синтетика SD3 + ControlNet Depth (продолжение после защиты) | HF dataset: `AntoniusPerf/runic-synth-sd3-depth` |
 | Исходные выгрузки баз | Kaggle: `zhopa228/runic-inscriptions`, `zhopa228/runer-ku`, `zhopa228/christerhamp-gamla-runor-with-filenames` |
