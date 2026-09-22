@@ -1,0 +1,20 @@
+# Эксперименты: Kaggle / Colab, одна GPU ~16 ГБ (NVIDIA T4)
+torch>=2.3
+transformers>=4.57        # Qwen3-VL через AutoModelForImageTextToText
+accelerate>=1.0
+peft>=0.13
+bitsandbytes>=0.46.1
+qwen-vl-utils
+diffusers>=0.29           # SD3 + ControlNet (синтез)
+sentencepiece
+safetensors
+huggingface_hub
+numpy
+pandas
+pillow>=11.0
+opencv-python-headless
+tqdm
+rapidfuzz                 # анализ ошибок
+# парсеры баз
+requests
+beautifulsoup4

@@ -1,0 +1,14 @@
+{
+  "model": "qwen25vl-7b",
+  "model_id": "Qwen/Qwen2.5-VL-7B-Instruct",
+  "adaptation": "QLoRA (4-bit NF4 + LoRA r=16, alpha=32, dropout=0.05)",
+  "CER_synth_val": 12.03,
+  "CER_gold": 54.27,
+  "CER_gold_ci": "(48.0-61.3)",
+  "WER_gold": 81.18,
+  "NED_gold": 59.37,
+  "SeqAcc_gold": 8.85,
+  "dCER": 42.24,
+  "n_gold": 113,
+  "source": "notebooks/03_training_eval/experiments_qwen_trocr.ipynb (Kaggle, 2026-06-03)"
+}

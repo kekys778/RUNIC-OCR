@@ -1,0 +1,13 @@
+model,params,setting,CER_synth_val,CER_gold,CER_gold_ci95,WER_gold,SeqAcc_gold,delta_CER
+TrOCR-BASE,334M,zero-shot,119.95,103.79,101.9-106.0,112.35,,
+TrOCR-LARGE,558M,zero-shot,250.76,100.53,99.7-101.4,107.65,,
+Qwen2-VL-2B,2B,zero-shot,337.42,724.55,594.4-889.5,848.24,,
+Qwen2.5-VL-7B,7B,zero-shot,99.18,102.74,99.9-106.3,103.53,,
+Qwen3-VL-2B,2B,zero-shot,218.10,364.81,310.7-426.4,422.94,0.0,
+Qwen3-VL-8B,8B,zero-shot,168.49,237.93,193.4-286.6,124.12,,
+TrOCR-BASE,334M,LoRA fine-tuned on synthetic,28.40,93.75,93.0-95.1,100.0,0.0,+65.35
+TrOCR-LARGE,558M,LoRA fine-tuned on synthetic,14.27,95.05,93.9-96.1,100.0,0.0,+80.78
+Qwen2-VL-2B,2B,QLoRA fine-tuned on synthetic,41.70,73.97,70.5-77.5,98.24,0.88,+32.27
+Qwen2.5-VL-7B,7B,QLoRA fine-tuned on synthetic,12.03,54.27,48.0-61.3,81.18,8.85,+42.24
+Qwen3-VL-2B,2B,QLoRA fine-tuned on synthetic,33.39,73.55,69.9-77.5,97.65,1.77,+40.16
+Qwen3-VL-8B,8B,QLoRA fine-tuned on synthetic,34.69,67.86,62.2-73.6,95.29,0.88,+33.17

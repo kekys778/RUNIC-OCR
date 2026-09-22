@@ -1,0 +1,86 @@
+% =====================================================================
+%  pipeline_tikz.tex — схема конвейера, вставить как:
+%    \begin{figure}[htbp]\centering
+%      \input{pipeline_tikz.tex}
+%      \caption{...}\label{fig:pipeline}
+%    \end{figure}
+%
+%  В преамбулу добавьте:
+%    \usepackage{tikz}
+%    \usetikzlibrary{positioning, arrows.meta, calc}
+% =====================================================================
+
+\begin{tikzpicture}[
+  font=\small,
+  >={Stealth[length=2.4mm, width=1.8mm]},
+  %% --- стили блоков ---
+  box/.style={
+    draw, rounded corners=4pt, align=center,
+    inner sep=5pt, text width=27mm, minimum height=13mm
+  },
+  data/.style={box, fill=teal!15,   draw=teal!70!black},   % синтез / данные
+  hero/.style={box, fill=violet!14, draw=violet!60!black}, % распознаватель
+  demo/.style={box, fill=orange!18, draw=orange!65!black}, % демо-перевод
+  io/.style  ={box, fill=black!7,   draw=black!40},        % вход / выход
+  arr/.style ={->, semithick, draw=black!55},
+  lbl/.style ={font=\footnotesize\itshape}
+]
+
+%% ================================================================
+%%  РЯДЫ С ЯВНЫМИ КООРДИНАТАМИ
+%%  Corpus (x=8.4) и Recognizer (x=8.4) — в одном столбце,
+%%  поэтому стрелка «обучение» идёт строго вертикально.
+%% ================================================================
+
+%% --- ряд 1 (y=0): синтез / обучающие данные ---
+\node[data] (rundata) at (0.0, 0.0) {Rundata\\\footnotesize лексикон};
+\node[data] (synth)   at (4.2, 0.0) {Синтез\\\footnotesize ControlNet / inpainting};
+\node[data] (corpus)  at (8.4, 0.0) {Синт. корпус\\\footnotesize + аугментация};
+
+\draw[arr] (rundata.east) -- (synth.west);
+\draw[arr] (synth.east)   -- (corpus.west);
+
+%% --- ряд 2 (y=−3.0): инференс ---
+\node[io]   (photo) at (0.0, -3.0) {Фото надписи};
+\node[io]   (prep)  at (4.2, -3.0) {Предобработка\\\footnotesize 7 этапов};
+\node[hero] (rec)   at (8.4, -3.0) {Распознаватель\\\footnotesize TrOCR / Qwen-VL};
+
+\draw[arr] (photo.east) -- (prep.west);
+\draw[arr] (prep.east)  -- (rec.west);
+
+%% --- Обучение: corpus → rec ---
+%% Corpus и rec в одном столбце (x=8.4) → стрелка строго вниз, без пересечений.
+\draw[arr] (corpus.south) --
+  node[right, lbl, yshift=-1mm]{обучение} (rec.north);
+
+%% --- ряд 3 (y=−6.0): выход распознавания ---
+\node[io]   (tr) at (0.0, -6.0) {Транслитерация\\\footnotesize $\Sigma$ (Rundata)};
+\node[demo] (mt) at (4.8, -6.0) {Перевод (демо)\\\footnotesize EN / DE / SV};
+
+\draw[arr] (tr.east) -- (mt.west);
+
+%% --- rec → tr: маршрут через зазор между рядами 2 и 3 ---
+%%
+%%  Зазор между рядом 2 (центр y=−3.0, низ ≈ −3.65)
+%%  и рядом 3 (центр y=−6.0, верх ≈ −5.35):
+%%  безопасный y в зазоре ≈ −4.5.
+%%
+%%  Путь:  rec.south → вниз до y=−4.5  →  влево до x=0  →
+%%         вниз до tr.north    (ни один блок не пересекается)
+%%
+\coordinate (gap_A) at ($(rec.south) + (0, -1.0)$);  % y ≈ −4.0
+\draw[arr] (rec.south) -- (gap_A) -| (tr.north);
+%% "-|" = сначала горизонталь (до x=tr.north.x=0), затем вертикаль до tr.north
+
+%% --- ряд 4 (y=−9.0): оценка ---
+\node[io] (gold) at (0.0, -9.0) {Gold set\\\footnotesize реальные фото};
+\node[io] (eval) at (4.8, -9.0) {Оценка качества\\\footnotesize CER / WER};
+
+\draw[arr] (gold.east) -- (eval.west);
+
+%% --- tr → eval: маршрут через зазор между рядами 3 и 4 ---
+%%  Зазор: y ≈ −7.5
+\coordinate (gap_B) at ($(tr.south) + (0, -1.0)$);  % y ≈ −7.0
+\draw[arr] (tr.south) -- (gap_B) -| (eval.west);
+
+\end{tikzpicture}

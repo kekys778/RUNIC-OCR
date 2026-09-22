@@ -1,0 +1,114 @@
+file,gt,pred,exact_match
+93_48_1str.png,saRþatbarutR,htbhu,False
+93_48_2str.png,utiaRweladaude,hmweï,False
+93_48_3str.png,haeramalausR,alu,False
+93_48_4str.png,inarunaRarageu,hun hmhl,False
+93_48_5str.png,falahakhaiderag,hhRhi,False
+93_48_6str.png,haidRrunoronu,hidRlnorso,False
+93_24.png,uþarabasba,uþarhasb,False
+93_3.png,uþarabasba,uþhRhbajbh,False
+92_2_1str.png,niuhagestumR,hiunagmetïmR,False
+92_2_2str.png,niuhaborumR,alu,False
+92_2_3str.png,haþuwolafRgafj,nhbwrlhRghfj,False
+92_2_4str.png,hariwolafRma,riwaR,False
+92_2_5str.png,hideRrunonofel,hiogmR ruaoa,False
+92_2_6str.png,oronoR,ek,False
+86_0.png,Ritsagudiw,mitk,False
+84_4.png,Ragiþial,giwaR,False
+83_0.png,skiþaleubaR,sjïþæaubRm,False
+82_1.png,Ritsagilas,mitsogilts,False
+82_2.png,onif,hin,False
+81_2.png,harijaleugaR,haukjalteugæRt,False
+80_2.png,iRhaiwidaRþar,mnïwiþaRbær,False
+77_4.png,igionhalaR,sa,False
+77_0.png,igionhalaR,ek,False
+76_2.png,hariþulfsstaina,huriþuïfnctbha,False
+5243_1_tin.png,tin,ek,False
+5279_1_raniaoþnuikur.png,raniaoþnuikur,ran,False
+5364_2_leiknar-raist.png,leiknar raist,raist,False
+5364_2_leiknar.png,leiknar,knar,False
+5364_2_raist.png,raist,raist,True
+5364_5_siin.png,siin,ek,False
+5364_5_tir.png,tir,ek,False
+5393_0_guþfirilati.png,guþfirilati,kir,False
+5396_0_eft.png,eft,ek,False
+5396_0_stain-eft.png,stain eft,stain,False
+5396_0_stain.png,stain,stai,False
+5396_2_lit-kier.png,lit kier,mnar,False
+5396_3_a-stain-eft.png,a stain eft,stain eft,False
+5396_3_eft.png,eft,eft,True
+5396_3_it-kier.png,it kier,tiwaer,False
+5396_3_it.png,it,it,True
+5396_3_kier.png,kier,kiar,False
+5396_3_stain-eft.png,stain eft,stain eft,True
+5396_3_stain.png,stain,stain,True
+5398_2_rai.png,rai,ra,False
+5475_0_bia.png,bia,bia,True
+5475_2_bia.png,bia,bik,False
+5498_4_tainþin.png,tainþin,w,False
+5638_2_lit.png,lit,ek,False
+5638_2_risa.png,risa,ek,False
+5638_2_stin.png,stin,stn,False
+5644_0_amuti-risti-runar.png,amuti risti runar,arist,False
+5644_0_amuti.png,amuti,ek,False
+5644_0_at.png,at,tiwaR,False
+5644_0_ialmuiþr-raisti-stain.png,ialmuiþr raisti stain,rhar,False
+5644_0_ialmuiþr.png,ialmuiþr,þr,False
+5644_0_raisti.png,raisti,rat,False
+5644_0_risti-runar.png,risti runar,ris,False
+5644_0_risti.png,risti,ris,False
+5644_0_runar.png,runar,ek,False
+5644_0_stain.png,stain,ek,False
+5644_0_sunsn.png,sunsn,sn,False
+5645_0_faþ.png,faþ,waR,False
+5645_0_þina.png,þina,na,False
+5652_0_auk-suain.png,auk suain,sua,False
+5652_0_auk-uihielbr.png,auk uihielbr,ek,False
+5652_0_auk.png,auk,ek,False
+5652_0_kyla-þaun.png,kyla þaun,a,False
+5652_0_kyla.png,kyla,ki,False
+5652_0_litu-raisa.png,litu raisa,raisa,False
+5652_0_litu.png,litu,ek,False
+5652_0_raisa-stain.png,raisa stain,rasa stain,False
+5652_0_raisa.png,raisa,raisa,True
+5652_0_stain-eftiR.png,stain eftiR,sta,False
+5652_0_stain.png,stain,stain,True
+5652_0_suain-auk.png,suain auk,a,False
+5652_0_suain.png,suain,alu,False
+5652_0_uihielbr.png,uihielbr,hbb,False
+5652_0_þaun-litu.png,þaun litu,aln,False
+5652_0_þaun.png,þaun,alu,False
+5659_0_aiRlit-ur.png,aiRlit ur,ek,False
+5659_0_tuf.png,tuf,alu,False
+5660_0_uþu.png,uþu,w,False
+5661_0_sten.png,sten,ek,False
+5666_0_auk.png,auk,auk,True
+5666_0_litu.png,litu,ek,False
+5666_0_raisa.png,raisa,sa,False
+5666_0_suaen.png,suaen,alu,False
+5666_0_tain.png,tain,na,False
+5666_0_uinut.png,uinut,na,False
+5666_0_þuriR.png,þuriR,alu,False
+5699_0_kuþon.png,kuþon,þan,False
+5699_0_risþi.png,risþi,ek,False
+5810_0_.urmar.png,.urmar,ra,False
+5810_0_eftiR-urmar.png,eftiR urmar,lrma,False
+5810_0_eftiR.png,eftiR,ft,False
+5810_0_karþi-kuml-þusi-eftiR.png,karþi kuml þusi eftiR,karþ klm þus eftiR,False
+5810_0_karþi-kuml-þusi-eftiR-urmar.png,karþi kuml þusi eftiR urmar,karþi kuml þus eftiR urma,False
+5810_0_karþi-kuml-þusi.png,karþi kuml þusi,karþi kuml þus,False
+5810_0_karþi-kuml.png,karþi kuml,kabþi klmr,False
+5810_0_karþi.png,karþi,karþi,True
+5810_0_kuml-þusi-eftiR-urmar.png,kuml þusi eftiR urmar,kuml þus eftiR urma,False
+5810_0_kuml-þusi-eftiR.png,kuml þusi eftiR,kuml þus eftiR,False
+5810_0_kuml-þusi.png,kuml þusi,þu,False
+5810_0_kuml.png,kuml,mt,False
+5810_0_kuþmutr-karþi-kuml-þusi-eftiR-urmar-su.png,kuþmutr karþi kuml þusi eftiR urmar su,kuþmær karþ kuml þus ftiR urmak s,False
+5810_0_kuþmutr-karþi-kuml-þusi-eftiR.png,kuþmutr karþi kuml þusi eftiR,kuþRlr karþ kuml þus eftiR,False
+5810_0_kuþmutr-karþi-kuml-þusi.png,kuþmutr karþi kuml þusi,kuþR utr karþi kuml þu,False
+5810_0_kuþmutr-karþi-kuml.png,kuþmutr karþi kuml,kuþRatr karþi klm,False
+5810_0_kuþmutr-karþi.png,kuþmutr karþi,karþi,False
+5810_0_kuþmutr.png,kuþmutr,aluþRtr,False
+5810_0_þusi-eftiR-urmar.png,þusi eftiR urmar,þus eftiR urma,False
+5810_0_þusi-eftiR.png,þusi eftiR,þus,False
+5810_0_þusi.png,þusi,þu,False
