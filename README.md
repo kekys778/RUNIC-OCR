@@ -48,8 +48,11 @@ Zero-shot rows and CIs: [`results/metrics/summary.csv`](results/metrics/summary.
 All 113 predictions of the best model: [`results/predictions/qwen25vl-7b_finetuned_gold.csv`](results/predictions/qwen25vl-7b_finetuned_gold.csv).
 </details>
 
-Typical errors of the best model are confusions between visually close runes (k/g, t/þ, b/þ, i/e, u/o,
-R/r, m/n) and a fallback to frequent formulas (`ek`, `alu`) on short archaic inscriptions.
+**Post-thesis error analysis** ([report](results/analysis/qwen25vl-7b_finetuned/REPORT.md)): the 113 gold lines come
+from only 28 inscriptions, so the honest 95 % CI of the best model is **42.0–70.5 %** (resampling inscriptions,
+not lines). 71 % of its errors are deletions, i.e. too-short outputs. Only 27 % are substitutions between similar runes,
+and it falls back to frequent formulas (`ek` on 18 lines, `alu` on 7). Follow-up experiments that run on Kaggle
+without any setup are in [`notebooks/04_further_work/`](notebooks/04_further_work/README.md).
 
 ## Method in five steps
 
@@ -74,16 +77,19 @@ RUNIC-OCR/
 ├── notebooks/                  # the research story, in order; see notebooks/README.md
 │   ├── 01_data_collection/     # runer.ku.dk scraper, gold-set photo normalization
 │   ├── 02_synthesis/           # ControlNet comparison, SD3 + Canny (final), SD3 + Depth
-│   └── 03_training_eval/       # TrOCR / Qwen-VL training and evaluation
+│   ├── 03_training_eval/       # TrOCR / Qwen-VL training and evaluation
+│   └── 04_further_work/        # post-thesis experiments, fire-and-forget on Kaggle
 ├── src/                        # reusable Python modules
 │   ├── runic_ocr_experiments.py    # unified harness: data, models, training, metrics, ablation
 │   ├── runic_transliteration.py    # Unicode runes <-> Rundata transliteration
+│   ├── runic_eval.py               # torch-free metrics, inscription-level bootstrap, grouped k-fold
+│   ├── runic_vlm.py / runic_kaggle.py / runic_reports.py  # GPU runner, Kaggle helpers, reports
 │   ├── synth_dataset_generation.py # early SDXL-inpainting generator
 │   ├── update_corpus.py            # append new images to real_corpus.csv
 │   └── parser_runes.py             # RuneS database scraper
 ├── data/                       # gold set (113 real lines), synthetic labels + samples, sources; see data/README.md
 ├── results/                    # metrics, predictions, figures
-├── scripts/plot_results.py     # regenerates results/figures/cer_synth_vs_gold.png
+├── scripts/                    # plot_results.py (figure), analyze_predictions.py (error analysis, CPU)
 ├── tests/                      # unit tests (CPU-only)
 └── thesis/                     # PDF, LaTeX sources, defense slides
 ```
