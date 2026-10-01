@@ -103,15 +103,18 @@ Train and evaluate a model with the unified harness. It is the same code as
 [`notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb`](notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb):
 
 ```python
-import sys; sys.path.append("src")
-from runic_ocr_experiments import CFG, prepare_data, run_train, run_eval
+import sys
 
-CFG.SYNTH_ZIP = "/path/to/synthetic_images"   # folder or zip
-CFG.GOLD_SOURCE = "data/gold_set"             # 113 real lines + real_corpus.csv
+sys.path.append("src")
+from runic_ocr_experiments import CFG, prepare_data, run_eval, run_train
+
+CFG.SYNTH_ZIP = "/path/to/synthetic_images"  # folder or zip
+CFG.GOLD_SOURCE = "data/gold_set"  # 113 real lines + real_corpus.csv
 synth_df, gold_df = prepare_data()
 
 run_train("qwen25vl-7b", synth_df=synth_df, gold_df=gold_df)
-run_eval("qwen25vl-7b", gold_df=gold_df, synth_df=synth_df)  # CER / WER / NED / SeqAcc + bootstrap CI
+# CER / WER / NED / SeqAcc + bootstrap CI on the gold set
+run_eval("qwen25vl-7b", gold_df=gold_df, synth_df=synth_df)
 ```
 
 Model keys: `trocr-base`, `trocr-large`, `qwen2vl-2b`, `qwen25vl-7b`, `qwen3vl-2b`, `qwen3vl-8b`.

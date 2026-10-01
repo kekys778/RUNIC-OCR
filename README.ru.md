@@ -118,10 +118,14 @@ pytest                                # юнит-тесты (CPU)
 ```
 
 ```python
-from runic_ocr_experiments import prepare_data, run_train, run_eval
-synth_df, gold_df = prepare_data()   # пути к синтетике и gold set задаются в GlobalConfig
-run_train("qwen25vl-7b")             # ключи моделей: trocr-base, trocr-large, qwen2vl-2b, qwen25vl-7b, qwen3vl-2b, qwen3vl-8b, ...
-run_eval("qwen25vl-7b")              # CER / WER / NED / SeqAcc + бутстрэп-ДИ на gold set
+from runic_ocr_experiments import prepare_data, run_eval, run_train
+
+# пути к синтетике и gold set задаются в GlobalConfig
+synth_df, gold_df = prepare_data()
+# ключи моделей: trocr-base, trocr-large, qwen2vl-2b, qwen25vl-7b, qwen3vl-2b, qwen3vl-8b, ...
+run_train("qwen25vl-7b")
+# CER / WER / NED / SeqAcc + бутстрэп-ДИ на gold set
+run_eval("qwen25vl-7b")
 ```
 
 Генерация синтетики — [`notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb`](notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb)

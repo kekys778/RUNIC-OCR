@@ -1,5 +1,5 @@
 # Lightweight tooling: lint, tests and the results figure (no GPU stack needed)
-ruff>=0.6
+ruff==0.16.9  # pinned: newer releases may change formatting
 pytest>=8
 pre-commit>=3
 pandas
