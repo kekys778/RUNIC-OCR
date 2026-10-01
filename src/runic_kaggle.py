@@ -46,6 +46,52 @@ def get_secret(name: str) -> str | None:
         return None
 
 
+def run_isolated(
+    spec: dict, workdir: str | Path, module: str = "runic_step", env: dict | None = None
+) -> dict:
+    """Run ``python -m <module> spec.json`` in a fresh process and return its result JSON.
+
+    Every GPU step runs in its own process, so all GPU memory is released when it
+    exits: repeated load/train/unload cycles in one Jupyter kernel leak memory and
+    end in CUDA OOM. Child output is streamed into the notebook. Raises
+    ``RuntimeError`` (with the last lines of output) if the child fails.
+    """
+    import subprocess
+    import sys
+    import uuid
+
+    workdir = Path(workdir)
+    workdir.mkdir(parents=True, exist_ok=True)
+    tag = uuid.uuid4().hex[:8]
+    spec_path, out_path = workdir / f"spec_{tag}.json", workdir / f"result_{tag}.json"
+    spec_path.write_text(
+        json.dumps({**spec, "out": str(out_path)}, ensure_ascii=False), encoding="utf-8"
+    )
+    child_env = {**os.environ, "PYTORCH_CUDA_ALLOC_CONF": "expandable_segments:True", **(env or {})}
+    src = str(Path(__file__).resolve().parent)
+    child_env["PYTHONPATH"] = src + os.pathsep + child_env.get("PYTHONPATH", "")
+    proc = subprocess.Popen(
+        [sys.executable, "-u", "-m", module, str(spec_path)],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        text=True,
+        env=child_env,
+    )
+    tail: list[str] = []
+    for line in proc.stdout:
+        line = line.rstrip()
+        if line and not line.startswith(("Loading weights", "Fetching", "Downloading")):
+            print("   ", line)
+        tail = (tail + [line])[-25:]
+    code = proc.wait()
+    spec_path.unlink(missing_ok=True)
+    if code != 0 or not out_path.exists():
+        raise RuntimeError(f"step failed (exit code {code}):\n" + "\n".join(tail))
+    result = json.loads(out_path.read_text(encoding="utf-8"))
+    out_path.unlink(missing_ok=True)
+    return result
+
+
 def environment_report() -> dict:
     """Python / GPU / library versions, recorded with every result."""
     info = {"python": platform.python_version(), "platform": platform.platform()}
@@ -136,7 +182,12 @@ class ResultSink:
     """
 
     def __init__(
-        self, experiment: str, out_dir: str | Path, hf_repo: str = "", hf_token: str | None = None
+        self,
+        experiment: str,
+        out_dir: str | Path,
+        hf_repo: str = "",
+        hf_token: str | None = None,
+        seed_from: list[str | Path] | None = None,
     ):
         self.experiment = experiment
         self.dir = Path(out_dir) / experiment
@@ -144,8 +195,25 @@ class ResultSink:
         self.hf_repo = hf_repo if (hf_repo and hf_token) else ""
         self.hf_token = hf_token
         self.log_path = self.dir / "run_log.jsonl"
+        if seed_from and not self.log_path.exists():
+            self._seed(seed_from)
         if self.hf_repo:
             self._pull()
+
+    def _seed(self, roots: list[str | Path]) -> None:
+        """Copy a previous run's folder (e.g. a past Kaggle Output added as Input) to resume from it."""
+        import shutil
+
+        for root in roots:
+            if not Path(root).exists():
+                continue
+            for log in sorted(Path(root).rglob(f"{self.experiment}/run_log.jsonl")):
+                src = log.parent
+                if src.resolve() == self.dir.resolve():
+                    continue
+                shutil.copytree(src, self.dir, dirs_exist_ok=True)
+                print(f"[sink] resumed from previous output {src}: {sorted(self.done_steps())}")
+                return
 
     # -- resume ---------------------------------------------------------------
     def done_steps(self) -> set[str]:

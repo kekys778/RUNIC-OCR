@@ -8,7 +8,7 @@ Post-thesis experiments, ordered by expected payoff. Each GPU notebook is a thin
 |---|---|---|---|---|
 | **E0** | CPU, [`scripts/analyze_predictions.py`](../../scripts/analyze_predictions.py) | Error typology, confusion matrix, honest (inscription-level) CIs | seconds | done → [`results/analysis/`](../../results/analysis/qwen25vl-7b_finetuned/REPORT.md) |
 | **E1** | Kaggle GPU, [`E1_reeval_published_adapters`](E1_reeval_published_adapters.ipynb) | Do the public adapters reproduce the thesis? Are the model differences significant? 5-best hypotheses for decoding work | 0.4 h | done → [`REPORT`](../../results/further_work/E1_reeval/REPORT.md) |
-| **E2** | Kaggle GPU, [`E2_fewshot_real_cv`](E2_fewshot_real_cv.ipynb) | How much does fine-tuning on N real lines reduce CER? (grouped 5-fold CV, learning curve) | ≈ 4–6 h | ready |
+| **E2** | Kaggle GPU, [`E2_fewshot_real_cv`](E2_fewshot_real_cv.ipynb) | How much does fine-tuning on N real lines reduce CER? (grouped 5-fold CV, learning curve) | ≈ 1.5–2.5 h | ready (each step runs in its own process) |
 | E3 | planned | Crop + augment synthetic images to look like real photos | — | next |
 | E4 | planned | Training-data mix: real words vs. random strings; Canny vs. Depth | — | next |
 | E5 | planned (CPU) | Re-rank E1's 5-best with a character LM over Rundata | — | after E1 |
@@ -41,8 +41,16 @@ Post-thesis experiments, ordered by expected payoff. Each GPU notebook is a thin
 5. **Save Version → Save & Run All (Commit) → Save**. Close the tab; Kaggle runs it in the background (up to 12 h).
 6. When it finishes: open the version → **Output** → `results/<experiment>/REPORT.md` (or the HF dataset).
 
-**If a run stops early** (time limit, out of memory, lost connection), run it again the same way. Finished steps are
-recorded in `run_log.jsonl` and skipped; with `HF_TOKEN` they are also restored from the HF dataset.
+**If a run stops early** (time limit, lost connection), run it again the same way. Finished steps are recorded in
+`run_log.jsonl` and skipped. They are restored from the HF dataset (with `HF_TOKEN`) or, without a token, from a previous
+version's Output that you add as an Input (**Add Input → Your Work → the notebook**).
+
+**Before a long run, check the setup in one minute:** set `DRY_RUN = True` in E2's configuration cell and run all. A fake
+model replaces the GPU, so every step, table and chart is exercised on CPU.
+
+E2 runs every (N, fold) step in a separate Python process (`src/runic_step.py`). Loading and training a 4-bit 7B model
+repeatedly in one kernel leaked GPU memory and hit CUDA OOM after six steps; a fresh process per step releases everything.
+A failed step is logged and skipped instead of stopping the run.
 
 **To bring results back here**, either share the HF dataset path or download the Output folder and drop it into
 `results/further_work/` in this repo.

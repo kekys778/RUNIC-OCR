@@ -36,7 +36,7 @@ The RuneS database is scraped by [`src/parser_runes.py`](../src/parser_runes.py)
 | # | Notebook | What it does | Runtime | Status |
 |---|---|---|---|---|
 | E1 | [`E1_reeval_published_adapters`](04_further_work/E1_reeval_published_adapters.ipynb) | Re-evaluate the public adapters: reproduction check, inscription-level CIs, significance, 5-best | Kaggle T4, 0.4 h | **done**: thesis reproduced exactly |
-| E2 | [`E2_fewshot_real_cv`](04_further_work/E2_fewshot_real_cv.ipynb) | Few-shot fine-tuning on real photos, grouped 5-fold CV, learning curve | Kaggle T4, ≈ 4–6 h | ready |
+| E2 | [`E2_fewshot_real_cv`](04_further_work/E2_fewshot_real_cv.ipynb) | Few-shot fine-tuning on real photos, grouped 5-fold CV, learning curve | Kaggle T4, ≈ 1.5–2.5 h | ready |
 
 How to run them and what the CPU error analysis (E0) found: [`04_further_work/README.md`](04_further_work/README.md).
 

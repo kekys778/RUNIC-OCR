@@ -113,3 +113,30 @@ def test_warmup_steps_replaces_ratio():
     )  # ceil(10/4)=3 steps/epoch × 10 epochs → 30 steps → 3 warm-up
     assert warmup_steps(90, 4, 5) == 12
     assert warmup_steps(1, 4, 1) == 1
+
+
+def test_run_isolated_dry_run(tmp_path):
+    g = K.load_gold().head(4)
+    spec = {
+        "dry_run": True,
+        "train_items": [{"image": p, "answer": t} for p, t in zip(g["path"][:2], g["gt"][:2])],
+        "test_paths": list(g["path"]),
+        "dry_gt": dict(zip(g["path"], g["gt"])),
+        "n_best": 2,
+    }
+    res = K.run_isolated(spec, tmp_path)
+    assert len(res["recs"]) == 4 and "nbest" in res["recs"][0]
+    assert not list(tmp_path.glob("*.json"))  # spec/result files are cleaned up
+
+
+def test_run_isolated_reports_failure(tmp_path):
+    with pytest.raises(RuntimeError, match="step failed"):
+        K.run_isolated({"dry_run": True, "test_paths": ["missing"], "dry_gt": {}}, tmp_path)
+
+
+def test_result_sink_seeds_from_previous_output(tmp_path):
+    old = K.ResultSink("E9_test", tmp_path / "input" / "prev-version" / "results")
+    old.save_csv("pred_N0.csv", pd.DataFrame({"a": [1]}))
+    old.mark_done("N0")
+    new = K.ResultSink("E9_test", tmp_path / "working", seed_from=[tmp_path / "input"])
+    assert new.is_done("N0") and new.path("pred_N0.csv").exists()
