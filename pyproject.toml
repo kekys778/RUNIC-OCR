@@ -34,8 +34,6 @@ extend-immutable-calls = ["runic_transliteration.TranslitConfig", "TranslitConfi
 # Notebooks are archived research runs: imports appear where they are first needed
 # and cells use top-level statements, so import placement rules are relaxed.
 "*.ipynb" = ["E402", "F811", "B018", "I001"]
-# Add-on notebook: runs inside the session of 02_synth_sd3_canny_colab_prototype.ipynb
-"notebooks/02_synthesis/01_controlnet_modalities_comparison.ipynb" = ["F821"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

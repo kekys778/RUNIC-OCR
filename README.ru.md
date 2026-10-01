@@ -92,7 +92,7 @@ RUNIC-OCR/
 │   ├── update_corpus.py               # пополнение real_corpus.csv новыми изображениями
 │   └── parser_runes.py                # парсер базы RuneS
 ├── notebooks/                         # пронумерованы в порядке исследования, см. notebooks/README.md
-│   ├── 01_data_collection/            # парсинг баз, нормализация фото, LLM-бейзлайн
+│   ├── 01_data_collection/            # парсер runer.ku.dk, нормализация фото gold set
 │   ├── 02_synthesis/                  # сравнение ControlNet, SD3 + Canny (финал), SD3 + Depth
 │   └── 03_training_eval/              # эксперименты TrOCR / Qwen-VL (Kaggle, с выводами)
 ├── results/
@@ -108,7 +108,7 @@ RUNIC-OCR/
 ## Запуск
 
 Эксперименты выполнялись в Kaggle / Colab (одна GPU ~16 ГБ). Основной сценарий —
-ноутбук [`notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb`](notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb)
+ноутбук [`notebooks/03_training_eval/01_experiments_trocr_qwen.ipynb`](notebooks/03_training_eval/01_experiments_trocr_qwen.ipynb)
 или тот же код в виде модуля [`src/runic_ocr_experiments.py`](src/runic_ocr_experiments.py):
 
 ```bash
@@ -128,9 +128,9 @@ run_train("qwen25vl-7b")
 run_eval("qwen25vl-7b")
 ```
 
-Генерация синтетики — [`notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb`](notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb)
-(нужен доступ к `stabilityai/stable-diffusion-3-medium-diffusers`). Секреты (`HF_TOKEN`, `GROQ_API_KEY`, `GOOGLE_API_KEY`)
-читаются из переменных окружения или секретов Kaggle/Colab и никогда не хранятся в ноутбуках.
+Генерация синтетики — [`notebooks/02_synthesis/02_synth_sd3_canny_final.ipynb`](notebooks/02_synthesis/02_synth_sd3_canny_final.ipynb)
+(нужен доступ к `stabilityai/stable-diffusion-3-medium-diffusers`). Секрет `HF_TOKEN`
+читается из переменной окружения или секретов Kaggle/Colab и никогда не хранится в ноутбуках.
 
 ## Где лежат большие артефакты
 

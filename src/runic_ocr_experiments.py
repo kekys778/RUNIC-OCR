@@ -18,7 +18,7 @@ Typical usage (Kaggle / Colab, one ~16 GB GPU)::
 
 Paths are configured through the :data:`CFG` (:class:`GlobalConfig`) instance.
 The interactive version of this module is
-``notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb``.
+``notebooks/03_training_eval/01_experiments_trocr_qwen.ipynb``.
 """
 
 from __future__ import annotations
