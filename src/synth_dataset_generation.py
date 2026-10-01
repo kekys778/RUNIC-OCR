@@ -11,20 +11,18 @@
 """
 
 import gc
-import json
 import logging
 import os
 import urllib.request
 import zipfile
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 import cv2
 import numpy as np
 import pandas as pd
 import torch
-from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
+from PIL import Image, ImageDraw, ImageEnhance, ImageFont
 from tqdm import tqdm
 
 logging.basicConfig(
@@ -40,21 +38,39 @@ logger = logging.getLogger(__name__)
 # ──────────────────────────────────────────────────────────────────────
 
 ELDER_FUTHARK_MAP = {
-    "ᚠ": "f",  "ᚢ": "u",  "ᚦ": "þ",  "ᚨ": "a",
-    "ᚱ": "r",  "ᚲ": "k",  "ᚷ": "g",  "ᚹ": "w",
-    "ᚺ": "h",  "ᚾ": "n",  "ᛁ": "i",  "ᛃ": "j",
-    "ᛇ": "ï",  "ᛈ": "p",  "ᛉ": "R",  "ᛊ": "s",
-    "ᛏ": "t",  "ᛒ": "b",  "ᛖ": "e",  "ᛗ": "m",
-    "ᛚ": "l",  "ᛜ": "ŋ",  "ᛞ": "d",  "ᛟ": "o",
+    "ᚠ": "f",
+    "ᚢ": "u",
+    "ᚦ": "þ",
+    "ᚨ": "a",
+    "ᚱ": "r",
+    "ᚲ": "k",
+    "ᚷ": "g",
+    "ᚹ": "w",
+    "ᚺ": "h",
+    "ᚾ": "n",
+    "ᛁ": "i",
+    "ᛃ": "j",
+    "ᛇ": "ï",
+    "ᛈ": "p",
+    "ᛉ": "R",
+    "ᛊ": "s",
+    "ᛏ": "t",
+    "ᛒ": "b",
+    "ᛖ": "e",
+    "ᛗ": "m",
+    "ᛚ": "l",
+    "ᛜ": "ŋ",
+    "ᛞ": "d",
+    "ᛟ": "o",
 }
 
 FORMULAIC = [
     ("ᚠᚢᚦᚨᚱᚲ", "fuþark"),
-    ("ᚨᛚᚢ",     "alu"),
+    ("ᚨᛚᚢ", "alu"),
     ("ᛚᚨᚢᚲᚨᛉ", "laukáR"),
-    ("ᛏᛁᚹᚨᛉ",   "tiwaR"),
+    ("ᛏᛁᚹᚨᛉ", "tiwaR"),
     ("ᛁᚾᚷᚹᚨᛉ", "ingwaR"),
-    ("ᛖᚲ",      "ek"),
+    ("ᛖᚲ", "ek"),
 ]
 
 
@@ -62,16 +78,17 @@ def make_pair(rng, min_len=2, max_len=10):
     if rng.random() < 0.25:
         runic, translit = FORMULAIC[int(rng.integers(0, len(FORMULAIC)))]
         if rng.random() < 0.4:
-            keys   = list(ELDER_FUTHARK_MAP.keys())
-            extra  = "".join(keys[int(rng.integers(0, len(keys)))]
-                             for _ in range(int(rng.integers(1, 4))))
-            runic    += extra
+            keys = list(ELDER_FUTHARK_MAP.keys())
+            extra = "".join(
+                keys[int(rng.integers(0, len(keys)))] for _ in range(int(rng.integers(1, 4)))
+            )
+            runic += extra
             translit += "".join(ELDER_FUTHARK_MAP[c] for c in extra)
         return runic, translit
 
-    keys   = list(ELDER_FUTHARK_MAP.keys())
+    keys = list(ELDER_FUTHARK_MAP.keys())
     length = int(rng.integers(min_len, max_len + 1))
-    runes  = [keys[int(rng.integers(0, len(keys)))] for _ in range(length)]
+    runes = [keys[int(rng.integers(0, len(keys)))] for _ in range(length)]
     return "".join(runes), "".join(ELDER_FUTHARK_MAP[r] for r in runes)
 
 
@@ -89,12 +106,15 @@ _NOTO_URL = (
     "/fonts/ttf/unhinted/instance_ttf/NotoSansRunic-Regular.ttf"
 )
 
+
 def ensure_font(path="NotoSansRunic-Regular.ttf"):
     p = Path(path)
     if p.exists():
         return str(p)
-    for s in ["/usr/share/fonts/truetype/noto/NotoSansRunic-Regular.ttf",
-              "/usr/share/fonts/noto/NotoSansRunic-Regular.ttf"]:
+    for s in [
+        "/usr/share/fonts/truetype/noto/NotoSansRunic-Regular.ttf",
+        "/usr/share/fonts/noto/NotoSansRunic-Regular.ttf",
+    ]:
         if Path(s).exists():
             return s
     logger.info(f"Скачивание шрифта → {p}")
@@ -106,23 +126,29 @@ def ensure_font(path="NotoSansRunic-Regular.ttf"):
 # АВТОРИЗАЦИЯ
 # ──────────────────────────────────────────────────────────────────────
 
-# def setup_hf_auth() -> Optional[str]:
-#     try:
-#         from kaggle_secrets import UserSecretsClient
 
-#         os.environ["HF_TOKEN"] = 'YOUR_HF_TOKEN'
-#         from huggingface_hub import login
-#         login('YOUR_HF_TOKEN')
-#         logger.info("HuggingFace: авторизован")
-#         return token
-#     except Exception as e:
-#         logger.warning(f"HF_TOKEN не найден: {e}")
-#         return None
+def setup_hf_auth() -> str | None:
+    """HF token from the environment or Kaggle Secrets (never hard-coded)."""
+    token = os.environ.get("HF_TOKEN")
+    if not token:
+        try:
+            from kaggle_secrets import UserSecretsClient
+
+            token = UserSecretsClient().get_secret("HF_TOKEN")
+        except Exception as e:
+            logger.warning(f"HF_TOKEN не найден: {e}")
+            return None
+    from huggingface_hub import login
+
+    login(token)
+    logger.info("HuggingFace: авторизован")
+    return token
 
 
 # ──────────────────────────────────────────────────────────────────────
 # РЕНДЕР ГЛИФА И СОЗДАНИЕ МАСКИ
 # ──────────────────────────────────────────────────────────────────────
+
 
 def render_rune_with_mask(
     runic_text: str,
@@ -151,30 +177,28 @@ def render_rune_with_mask(
     base = Image.new("RGB", (size, size), (255, 255, 255))
     draw = ImageDraw.Draw(base)
     bbox = draw.textbbox((0, 0), runic_text, font=font)
-    tw   = bbox[2] - bbox[0]
-    th   = bbox[3] - bbox[1]
-    x    = max(16, (size - tw) // 2 + int(rng.integers(-12, 12)))
-    y    = max(16, (size - th) // 2 + int(rng.integers(-8, 8)))
+    tw = bbox[2] - bbox[0]
+    th = bbox[3] - bbox[1]
+    x = max(16, (size - tw) // 2 + int(rng.integers(-12, 12)))
+    y = max(16, (size - th) // 2 + int(rng.integers(-8, 8)))
     draw.text((x, y), runic_text, fill=(0, 0, 0), font=font)
 
     # Маска: инвертируем + расширяем защищённую область
     # чтобы края рун не «обгорали» при inpainting
-    gray  = np.array(base.convert("L"))
+    gray = np.array(base.convert("L"))
 
     # Бинаризация: руны = 0 (чёрные), фон = 255 (белый)
     _, binary = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)
 
     # Дилатируем ЧЁРНУЮ область рун — создаём буфер ~4px вокруг каждой руны
     # Это критично: без буфера inpainting «подъедает» края штрихов
-    kernel   = np.ones((8, 8), np.uint8)
-    dilated  = cv2.dilate(255 - binary, kernel, iterations=1)
-    rune_zone = 255 - dilated   # зона защиты (чёрная = не трогать)
+    kernel = np.ones((8, 8), np.uint8)
+    dilated = cv2.dilate(255 - binary, kernel, iterations=1)
+    rune_zone = 255 - dilated  # зона защиты (чёрная = не трогать)
 
     # Маска для SD: белый = рисовать камень, чёрный = не трогать
     mask_np = rune_zone  # фон белый (255), руны+буфер чёрные (0)
-    mask_img = Image.fromarray(
-        cv2.cvtColor(mask_np, cv2.COLOR_GRAY2RGB)
-    )
+    mask_img = Image.fromarray(cv2.cvtColor(mask_np, cv2.COLOR_GRAY2RGB))
 
     return base, mask_img
 
@@ -199,19 +223,10 @@ NEGATIVE_PROMPT = (
 )
 
 
-def get_prompt(rng: np.random.Generator) -> str:
-    """Строит промпт из фиксированной инструкции + случайных компонентов."""
-    return (
-        f"{_BASE_INSTRUCTION} "
-        f"Stone material: {str(rng.choice(_STONE_MATERIAL))}. "
-        f"Lighting: {str(rng.choice(_LIGHTING))}. "
-        f"Camera: {str(rng.choice(_CAMERA))}."
-    )
-
-
 # ──────────────────────────────────────────────────────────────────────
 # ПАЙПЛАЙНЫ
 # ──────────────────────────────────────────────────────────────────────
+
 
 def load_inpainting_pipeline(token: str):
     """
@@ -254,7 +269,7 @@ def load_sd3_pipeline(token: str):
     controlnet = SD3ControlNetModel.from_pretrained(
         "InstantX/SD3-Controlnet-Canny",
         torch_dtype=dtype,
-        token='YOUR_HF_TOKEN',
+        token=token,
     )
     logger.info("Загрузка SD3 Medium...")
     pipe = StableDiffusion3ControlNetPipeline.from_pretrained(
@@ -271,7 +286,7 @@ def load_sd3_pipeline(token: str):
     return pipe, "sd3_controlnet"
 
 
-def auto_load_pipeline(token: Optional[str]):
+def auto_load_pipeline(token: str | None):
     """
     Автовыбор пайплайна:
       ≥14 GB + token → SD3 ControlNet (лучше)
@@ -304,19 +319,20 @@ def auto_load_pipeline(token: Optional[str]):
 # PIL ФОЛЛБЕК
 # ──────────────────────────────────────────────────────────────────────
 
+
 def pil_stone_texture(size, rng):
     base = rng.uniform(0.45, 0.70, (size, size))
     for scale in [4, 8, 16, 32]:
         hs, ws = max(1, size // scale), max(1, size // scale)
         n = rng.uniform(-0.06, 0.06, (hs, ws))
-        ni = Image.fromarray(
-            ((n + 0.5) * 255).clip(0, 255).astype(np.uint8)
-        ).resize((size, size), Image.NEAREST)
+        ni = Image.fromarray(((n + 0.5) * 255).clip(0, 255).astype(np.uint8)).resize(
+            (size, size), Image.NEAREST
+        )
         base += (np.array(ni).astype(float) / 255 - 0.5) * 0.04
     bright = int(rng.integers(130, 200))
     tex = (base * bright).clip(0, 255).astype(np.uint8)
-    r = np.clip(tex + int(rng.integers(-8,  8)), 0, 255).astype(np.uint8)
-    g = np.clip(tex + int(rng.integers(-4,  4)), 0, 255).astype(np.uint8)
+    r = np.clip(tex + int(rng.integers(-8, 8)), 0, 255).astype(np.uint8)
+    g = np.clip(tex + int(rng.integers(-4, 4)), 0, 255).astype(np.uint8)
     b = np.clip(tex + int(rng.integers(-12, 2)), 0, 255).astype(np.uint8)
     return Image.fromarray(np.stack([r, g, b], axis=2))
 
@@ -342,6 +358,7 @@ def pil_composite(init_image, mask_image, rng):
 # ГЕНЕРАЦИЯ ОДНОГО ОБРАЗЦА
 # ──────────────────────────────────────────────────────────────────────
 
+
 def generate_one(
     runic_text: str,
     pipe,
@@ -351,14 +368,11 @@ def generate_one(
     sample_idx: int,
     cfg,
 ) -> Image.Image:
-    size      = cfg.image_size
+    size = cfg.image_size
     font_size = int(rng.integers(*cfg.font_size_range))
-    prompt    = POSITIVE_PROMPT
     generator = torch.Generator("cuda").manual_seed(int(cfg.seed + sample_idx))
 
-    init_image, mask_image = render_rune_with_mask(
-        runic_text, size, font_path, font_size, rng
-    )
+    init_image, mask_image = render_rune_with_mask(runic_text, size, font_path, font_size, rng)
 
     if mode == "sdxl_inpaint":
         result = pipe(
@@ -368,7 +382,7 @@ def generate_one(
             mask_image=mask_image,
             num_inference_steps=cfg.num_inference_steps,
             guidance_scale=cfg.guidance_scale,
-            strength=cfg.inpaint_strength,   # 0.85–0.99: насколько агрессивно менять фон
+            strength=cfg.inpaint_strength,  # 0.85–0.99: насколько агрессивно менять фон
             generator=generator,
             width=size,
             height=size,
@@ -376,11 +390,11 @@ def generate_one(
         return result.images[0]
 
     elif mode == "sd3_controlnet":
-        gray  = np.array(init_image.convert("L"))
+        gray = np.array(init_image.convert("L"))
         edges = cv2.Canny(gray, 50, 150)
         kernel = np.ones((2, 2), np.uint8)
-        edges  = cv2.dilate(edges, kernel, iterations=1)
-        canny  = Image.fromarray(cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB))
+        edges = cv2.dilate(edges, kernel, iterations=1)
+        canny = Image.fromarray(cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB))
         result = pipe(
             prompt=POSITIVE_PROMPT,
             negative_prompt=NEGATIVE_PROMPT,
@@ -402,37 +416,39 @@ def generate_one(
 # КОНФИГУРАЦИЯ
 # ──────────────────────────────────────────────────────────────────────
 
+
 @dataclass
 class GeneratorConfig:
-    output_dir: str        = "/content/drive/MyDrive/SYNTH_PHOTO"
-    n_samples: int         = 2000
-    font_path: str         = "NotoSansRunic-Regular.ttf"
+    output_dir: str = "/content/drive/MyDrive/SYNTH_PHOTO"
+    n_samples: int = 2000
+    font_path: str = "NotoSansRunic-Regular.ttf"
     font_size_range: tuple = (72, 160)
-    image_size: int        = 1024
-    min_rune_len: int      = 2
-    max_rune_len: int      = 10
+    image_size: int = 1024
+    min_rune_len: int = 2
+    max_rune_len: int = 10
     num_inference_steps: int = 30
-    guidance_scale: float    = 8.0
-    controlnet_scale: float  = 0.65
+    guidance_scale: float = 8.0
+    controlnet_scale: float = 0.65
     # strength для inpainting: 0.85–0.99
     # 0.85 = консервативно (больше сохраняет оригинал)
     # 0.99 = агрессивно (полностью перегенерирует фон)
-    inpaint_strength: float  = 0.92
-    seed: int              = 1003
-    zip_every: int         = 101
-    checkpoint_every: int  = 25
+    inpaint_strength: float = 0.92
+    seed: int = 1003
+    zip_every: int = 101
+    checkpoint_every: int = 25
 
 
 # ──────────────────────────────────────────────────────────────────────
 # ZIP МЕНЕДЖЕР
 # ──────────────────────────────────────────────────────────────────────
 
+
 class ZipManager:
     def __init__(self, output_dir, zip_every):
         self.output_dir = Path(output_dir)
-        self.zip_every  = zip_every
-        self.batch_idx  = 0
-        self.pending    = []
+        self.zip_every = zip_every
+        self.batch_idx = 0
+        self.pending = []
         self.archive_dir = Path("/content/drive/MyDrive/SYNTH_PHOTO")
         self.archive_dir.mkdir(parents=True, exist_ok=True)
 
@@ -453,12 +469,11 @@ class ZipManager:
                     zf.write(p, f"images/{r['filename']}")
             zf.writestr(
                 f"labels_batch_{self.batch_idx:04d}.csv",
-                pd.DataFrame(self.pending).to_csv(index=False)
+                pd.DataFrame(self.pending).to_csv(index=False),
             )
         mb = path.stat().st_size / 1e6
         logger.info(
-            f"📦 {path.name} готов ({len(self.pending)} шт, {mb:.1f} MB) "
-            f"→ Output → {path.name}"
+            f"📦 {path.name} готов ({len(self.pending)} шт, {mb:.1f} MB) → Output → {path.name}"
         )
         self.pending.clear()
         self.batch_idx += 1
@@ -484,6 +499,7 @@ class ZipManager:
 # ОСНОВНОЙ ГЕНЕРАТОР
 # ──────────────────────────────────────────────────────────────────────
 
+
 def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
     rng = np.random.default_rng(cfg.seed)
 
@@ -493,10 +509,10 @@ def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
     labels_path = out_dir / "labels.csv"
 
     cfg.font_path = ensure_font(cfg.font_path)
-    token = 'YOUR_HF_TOKEN'
+    token = setup_hf_auth()
     pipe, mode = auto_load_pipeline(token)
 
-    logger.info(f"\n{'═'*50}\n  Режим: {mode}\n{'═'*50}")
+    logger.info(f"\n{'═' * 50}\n  Режим: {mode}\n{'═' * 50}")
 
     # Checkpoint
     if labels_path.exists():
@@ -505,7 +521,7 @@ def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
             if len(existing) == 0:
                 raise ValueError
             start_idx = len(existing)
-            records   = existing.to_dict("records")
+            records = existing.to_dict("records")
             logger.info(f"Продолжение с {start_idx}")
         except (pd.errors.EmptyDataError, ValueError):
             logger.warning("labels.csv пустой — начинаем заново.")
@@ -518,7 +534,7 @@ def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
         return pd.read_csv(labels_path)
 
     zip_mgr = ZipManager(cfg.output_dir, cfg.zip_every)
-    errors  = 0
+    errors = 0
 
     try:
         pbar = tqdm(
@@ -529,7 +545,7 @@ def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
         )
         for i in pbar:
             runic, translit = make_pair(rng, cfg.min_rune_len, cfg.max_rune_len)
-            filename        = make_filename(i, translit, runic)
+            filename = make_filename(i, translit, runic)
 
             try:
                 img = generate_one(runic, pipe, mode, cfg.font_path, rng, i, cfg)
@@ -569,16 +585,16 @@ def generate_dataset(cfg: GeneratorConfig) -> pd.DataFrame:
 
 if __name__ == "__main__":
     cfg = GeneratorConfig(
-        n_samples         = 2000,
-        image_size        = 1024,
-        font_size_range   = (72, 160),
-        min_rune_len      = 8,
-        max_rune_len      = 15,
-        num_inference_steps = 30,
-        guidance_scale    = 8.0,
-        inpaint_strength  = 0.92,
-        zip_every         = 100,
-        checkpoint_every  = 25,
+        n_samples=2000,
+        image_size=1024,
+        font_size_range=(72, 160),
+        min_rune_len=8,
+        max_rune_len=15,
+        num_inference_steps=30,
+        guidance_scale=8.0,
+        inpaint_strength=0.92,
+        zip_every=100,
+        checkpoint_every=25,
     )
     df = generate_dataset(cfg)
     print(df.head(5).to_string(index=False))

@@ -1,0 +1,6 @@
+# Lightweight tooling: lint, tests and the results figure (no GPU stack needed)
+ruff>=0.6
+pytest>=8
+pre-commit>=3
+pandas
+matplotlib

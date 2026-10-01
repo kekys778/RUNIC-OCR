@@ -11,6 +11,7 @@ bib_cleanup.py — очистка и аудит библиографии ВКР.
 Запуск:
     python3 bib_cleanup.py VKR.tex refs.bib refs_cleaned.bib report.txt
 """
+
 from __future__ import annotations
 
 import re
@@ -18,14 +19,14 @@ import sys
 from collections import defaultdict
 from pathlib import Path
 
-
 # ----- парсер .bib (без внешних библиотек) ---------------------------------
+
 
 def parse_bib(text: str) -> list[dict]:
     """Разобрать .bib на список записей с балансировкой фигурных скобок."""
     entries = []
     pos = 0
-    pat = re.compile(r'@(\w+)\s*\{\s*([^,\s]+)\s*,', re.MULTILINE)
+    pat = re.compile(r"@(\w+)\s*\{\s*([^,\s]+)\s*,", re.MULTILINE)
     while True:
         m = pat.search(text, pos)
         if not m:
@@ -36,21 +37,23 @@ def parse_bib(text: str) -> list[dict]:
         i = body_start
         while i < len(text) and depth > 0:
             c = text[i]
-            if c == '{':
+            if c == "{":
                 depth += 1
-            elif c == '}':
+            elif c == "}":
                 depth -= 1
             i += 1
         if depth != 0:
             print(f"[warn] незакрытая запись начиная с {entry_start}", file=sys.stderr)
             break
-        body = text[body_start:i - 1]
-        entries.append({
-            'type': m.group(1).lower(),
-            'key': m.group(2),
-            'fields': parse_fields(body),
-            'raw': text[entry_start:i],
-        })
+        body = text[body_start : i - 1]
+        entries.append(
+            {
+                "type": m.group(1).lower(),
+                "key": m.group(2),
+                "fields": parse_fields(body),
+                "raw": text[entry_start:i],
+            }
+        )
         pos = i
     return entries
 
@@ -60,31 +63,31 @@ def parse_fields(body: str) -> dict[str, str]:
     fields = {}
     pos = 0
     while pos < len(body):
-        m = re.match(r'[\s,]*([A-Za-z_-]+)\s*=\s*', body[pos:])
+        m = re.match(r"[\s,]*([A-Za-z_-]+)\s*=\s*", body[pos:])
         if not m:
             break
         name = m.group(1).lower()
         pos += m.end()
         if pos >= len(body):
             break
-        if body[pos] == '{':
+        if body[pos] == "{":
             depth, j = 1, pos + 1
             while j < len(body) and depth > 0:
-                if body[j] == '{':
+                if body[j] == "{":
                     depth += 1
-                elif body[j] == '}':
+                elif body[j] == "}":
                     depth -= 1
                 j += 1
-            value = body[pos + 1:j - 1]
+            value = body[pos + 1 : j - 1]
             pos = j
         elif body[pos] == '"':
             j = pos + 1
             while j < len(body) and body[j] != '"':
                 j += 1
-            value = body[pos + 1:j]
+            value = body[pos + 1 : j]
             pos = j + 1
         else:
-            m2 = re.match(r'(\S+?)(?=[,\s]|$)', body[pos:])
+            m2 = re.match(r"(\S+?)(?=[,\s]|$)", body[pos:])
             if not m2:
                 break
             value = m2.group(1)
@@ -95,14 +98,15 @@ def parse_fields(body: str) -> dict[str, str]:
 
 # ----- поиск ключей цитирования в .tex -------------------------------------
 
-CITE_COMMANDS = r'cite|citep|citet|citeauthor|citeyear|citeyearpar|citealp|citealt|parencite|textcite|footcite|autocite|nocite'
+CITE_COMMANDS = r"cite|citep|citet|citeauthor|citeyear|citeyearpar|citealp|citealt|parencite|textcite|footcite|autocite|nocite"
+
 
 def find_cited_keys(text: str) -> set[str]:
     keys = set()
     # \cite[opt]{a,b,c}
-    pat = re.compile(r'\\(?:' + CITE_COMMANDS + r')\*?(?:\[[^\]]*\])*\s*\{([^}]+)\}')
+    pat = re.compile(r"\\(?:" + CITE_COMMANDS + r")\*?(?:\[[^\]]*\])*\s*\{([^}]+)\}")
     for m in pat.finditer(text):
-        for k in m.group(1).split(','):
+        for k in m.group(1).split(","):
             k = k.strip()
             if k:
                 keys.add(k)
@@ -111,21 +115,22 @@ def find_cited_keys(text: str) -> set[str]:
 
 # ----- оценка полноты записи (для выбора лучшего дубля) --------------------
 
-INCOMPLETE_NOTE = re.compile(r'требует финальной сверки', re.IGNORECASE)
-AND_OTHERS_INCOMPLETE = re.compile(r'\{[A-Za-zА-Яа-я\-]+,\s*and others\}')
+INCOMPLETE_NOTE = re.compile(r"требует финальной сверки", re.IGNORECASE)
+AND_OTHERS_INCOMPLETE = re.compile(r"\{[A-Za-zА-Яа-я\-]+,\s*and others\}")
+
 
 def completeness(entry: dict) -> int:
-    score = sum(len(v) for v in entry['fields'].values())
-    note = entry['fields'].get('note', '')
-    author = '{' + entry['fields'].get('author', '') + '}'
+    score = sum(len(v) for v in entry["fields"].values())
+    note = entry["fields"].get("note", "")
+    author = "{" + entry["fields"].get("author", "") + "}"
     if INCOMPLETE_NOTE.search(note):
         score -= 200
     if AND_OTHERS_INCOMPLETE.search(author):
         score -= 100
     # лёгкий бонус за наличие DOI / URL
-    if entry['fields'].get('doi'):
+    if entry["fields"].get("doi"):
         score += 20
-    if entry['fields'].get('url'):
+    if entry["fields"].get("url"):
         score += 10
     return score
 
@@ -134,55 +139,57 @@ def completeness(entry: dict) -> int:
 # (для добавления — не для удаления)
 
 NAMED_BUT_UNCITED_CANDIDATES = {
-    'Canny':                  ['canny1986'],
-    'Otsu':                   ['otsu1979'],
-    'Sauvola':                ['sauvola2000'],
-    'MAE':                    ['he2022mae'],
-    'few-shot / Prototypical': ['snell2017'],
-    'low-resource survey':     ['hedderich2021'],
-    'DINO':                   ['caron2021dino', 'oquab2023dinov2'],
-    'SimCLR':                 ['chen2020simclr'],
-    'Donut':                  ['kim2022donut'],
-    'DETR':                   ['carion2020detr'],
-    'BM3D':                   ['dabov2007'],
-    'DnCNN':                  ['zhang2017dncnn'],
+    "Canny": ["canny1986"],
+    "Otsu": ["otsu1979"],
+    "Sauvola": ["sauvola2000"],
+    "MAE": ["he2022mae"],
+    "few-shot / Prototypical": ["snell2017"],
+    "low-resource survey": ["hedderich2021"],
+    "DINO": ["caron2021dino", "oquab2023dinov2"],
+    "SimCLR": ["chen2020simclr"],
+    "Donut": ["kim2022donut"],
+    "DETR": ["carion2020detr"],
+    "BM3D": ["dabov2007"],
+    "DnCNN": ["zhang2017dncnn"],
 }
 
 
 # ----- проверка полноты записей --------------------------------------------
 
+
 def check_problems(entry: dict) -> list[str]:
     issues = []
-    f = entry['fields']
-    if INCOMPLETE_NOTE.search(f.get('note', '')):
+    f = entry["fields"]
+    if INCOMPLETE_NOTE.search(f.get("note", "")):
         issues.append('помечена "требует финальной сверки"')
-    if AND_OTHERS_INCOMPLETE.search('{' + f.get('author', '') + '}'):
+    if AND_OTHERS_INCOMPLETE.search("{" + f.get("author", "") + "}"):
         issues.append(f"неполный автор: {f.get('author', '')[:80]}")
-    if not f.get('author') and entry['type'] not in ('misc', 'online'):
-        issues.append('нет поля author')
-    if not f.get('year') and not f.get('date'):
-        issues.append('нет поля year/date')
-    if entry['type'] == 'article' and not f.get('journal') and not f.get('journaltitle'):
-        issues.append('article без journal')
-    if entry['type'] == 'book' and not f.get('publisher'):
-        issues.append('book без publisher')
-    if entry['type'] in ('inproceedings', 'conference') and not f.get('booktitle'):
-        issues.append('inproceedings без booktitle')
+    if not f.get("author") and entry["type"] not in ("misc", "online"):
+        issues.append("нет поля author")
+    if not f.get("year") and not f.get("date"):
+        issues.append("нет поля year/date")
+    if entry["type"] == "article" and not f.get("journal") and not f.get("journaltitle"):
+        issues.append("article без journal")
+    if entry["type"] == "book" and not f.get("publisher"):
+        issues.append("book без publisher")
+    if entry["type"] in ("inproceedings", "conference") and not f.get("booktitle"):
+        issues.append("inproceedings без booktitle")
     return issues
 
 
 # ----- main -----------------------------------------------------------------
 
+
 def main(tex_path: str, bib_path: str, out_bib: str, out_report: str):
-    tex = Path(tex_path).read_text(encoding='utf-8')
-    bib = Path(bib_path).read_text(encoding='utf-8')
+    tex = Path(tex_path).read_text(encoding="utf-8")
+    bib = Path(bib_path).read_text(encoding="utf-8")
 
     entries = parse_bib(bib)
     cited = find_cited_keys(tex)
 
     by_key = defaultdict(list)
     for e in entries:
-        by_key[e['key']].append(e)
+        by_key[e["key"]].append(e)
 
     # Статистика
     total_entries = len(entries)
@@ -202,7 +209,7 @@ def main(tex_path: str, bib_path: str, out_bib: str, out_report: str):
         else:
             best = max(candidates, key=completeness)
             keep[key] = best
-            scores = [(completeness(c), len(c['raw']), i) for i, c in enumerate(candidates)]
+            scores = [(completeness(c), len(c["raw"]), i) for i, c in enumerate(candidates)]
             merge_log.append((key, len(candidates), scores))
 
     # Проблемные записи среди оставленных
@@ -220,17 +227,17 @@ def main(tex_path: str, bib_path: str, out_bib: str, out_report: str):
 
     # ---- запись чистого .bib ----
     out_lines = [
-        f"% Очищенная библиография для ВКР.",
+        "% Очищенная библиография для ВКР.",
         f"% Источник: {bib_path}",
         f"% Цитат-ключей в тексте: {len(cited)}",
         f"% Оставлено записей: {len(keep)}",
-        f"% Сгенерировано bib_cleanup.py",
+        "% Сгенерировано bib_cleanup.py",
         "",
     ]
     for key in sorted(keep):
-        out_lines.append(keep[key]['raw'].strip())
+        out_lines.append(keep[key]["raw"].strip())
         out_lines.append("")
-    Path(out_bib).write_text("\n".join(out_lines), encoding='utf-8')
+    Path(out_bib).write_text("\n".join(out_lines), encoding="utf-8")
 
     # ---- отчёт ----
     rep = []
@@ -259,7 +266,7 @@ def main(tex_path: str, bib_path: str, out_bib: str, out_report: str):
 
     if duplicates:
         rep.append("─" * 72)
-        rep.append(f"СХЛОПНУТЫЕ ДУБЛИКАТЫ (выбрана наиболее полная запись)")
+        rep.append("СХЛОПНУТЫЕ ДУБЛИКАТЫ (выбрана наиболее полная запись)")
         rep.append("─" * 72)
         for key in sorted(duplicates):
             n = len(duplicates[key])
@@ -297,14 +304,15 @@ def main(tex_path: str, bib_path: str, out_bib: str, out_report: str):
     rep.append("ИТОГ")
     rep.append("=" * 72)
     rep.append(f"Чистый файл: {out_bib}")
-    rep.append(f"Объём:        {total_entries} → {len(keep)} записей "
-               f"(−{total_entries - len(keep)})")
-    Path(out_report).write_text("\n".join(rep), encoding='utf-8')
+    rep.append(
+        f"Объём:        {total_entries} → {len(keep)} записей (−{total_entries - len(keep)})"
+    )
+    Path(out_report).write_text("\n".join(rep), encoding="utf-8")
 
     print("\n".join(rep))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     if len(sys.argv) != 5:
         print(__doc__)
         sys.exit(1)
