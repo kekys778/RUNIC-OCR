@@ -24,5 +24,5 @@
 
 ## `sources/` — исходные выгрузки для лексикона
 - `christerhamp_gamla_runor_with_filenames.csv` — сводка *Gamla runor* (Christer Hamp);
-- `runer_ku.csv` — выгрузка Danske Runeindskrifter (runer.ku.dk), см. `notebooks/01_data_collection/runer_ku_parser.ipynb`;
+- `runer_ku.csv` — выгрузка Danske Runeindskrifter (runer.ku.dk), см. `notebooks/01_data_collection/02_runer_ku_parser.ipynb`;
 - `NotoSansRunic-Regular.ttf` — шрифт для рендера рун (SIL Open Font License).
