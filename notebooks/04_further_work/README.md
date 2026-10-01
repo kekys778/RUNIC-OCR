@@ -7,7 +7,7 @@ Post-thesis experiments, ordered by expected payoff. Each GPU notebook is a thin
 | Step | Where | What it answers | Runtime | Status |
 |---|---|---|---|---|
 | **E0** | CPU, [`scripts/analyze_predictions.py`](../../scripts/analyze_predictions.py) | Error typology, confusion matrix, honest (inscription-level) CIs | seconds | done → [`results/analysis/`](../../results/analysis/qwen25vl-7b_finetuned/REPORT.md) |
-| **E1** | Kaggle GPU, [`E1_reeval_published_adapters`](E1_reeval_published_adapters.ipynb) | Do the public adapters reproduce the thesis? Are the model differences significant? 5-best hypotheses for decoding work | ≈ 1–1.5 h | ready |
+| **E1** | Kaggle GPU, [`E1_reeval_published_adapters`](E1_reeval_published_adapters.ipynb) | Do the public adapters reproduce the thesis? Are the model differences significant? 5-best hypotheses for decoding work | 0.4 h | done → [`REPORT`](../../results/further_work/E1_reeval/REPORT.md) |
 | **E2** | Kaggle GPU, [`E2_fewshot_real_cv`](E2_fewshot_real_cv.ipynb) | How much does fine-tuning on N real lines reduce CER? (grouped 5-fold CV, learning curve) | ≈ 4–6 h | ready |
 | E3 | planned | Crop + augment synthetic images to look like real photos | — | next |
 | E4 | planned | Training-data mix: real words vs. random strings; Canny vs. Depth | — | next |
@@ -21,6 +21,13 @@ Post-thesis experiments, ordered by expected payoff. Each GPU notebook is a thin
 * **71 % of the errors are deletions** (the output is too short); only 27 % are substitutions between similar runes.
   The model answers `ek` on 18 of 113 lines and `alu` on 7, which is a fallback to frequent words rather than misreading.
 * Short lines are hardest (1–4 characters: 67.7 % CER); full Elder Futhark lines score 65.1 % vs. 49.9 % for word crops.
+
+## What E1 found (Kaggle, 2× T4)
+
+* **The thesis reproduces exactly.** The public Qwen2.5-VL-7B adapter scores 55.40 % CER on the same 112 lines, identical
+  to the thesis predictions, in a newer environment (transformers 5.0). Qwen3-VL-8B scores 65.2 % and Qwen3-VL-2B 73.8 %.
+* **The ranking 7B < 8B < 2B is significant** even with the inscription-level paired bootstrap.
+* **The models fail differently.** The 7B model mostly omits characters (deletions), while the Qwen3 models mostly misread them.
 
 ## How to run a GPU notebook on Kaggle
 

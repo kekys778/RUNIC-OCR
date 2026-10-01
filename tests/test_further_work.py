@@ -103,3 +103,13 @@ def test_predictions_frame_with_nbest():
         "fold",
     ]
     assert (df["fold"] == 3).all()
+
+
+def test_warmup_steps_replaces_ratio():
+    from runic_vlm import warmup_steps
+
+    assert (
+        warmup_steps(10, 4, 10) == 3
+    )  # ceil(10/4)=3 steps/epoch × 10 epochs → 30 steps → 3 warm-up
+    assert warmup_steps(90, 4, 5) == 12
+    assert warmup_steps(1, 4, 1) == 1

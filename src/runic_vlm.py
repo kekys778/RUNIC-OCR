@@ -9,6 +9,7 @@ happen inside functions, so this module can be imported (and linted) without a G
 from __future__ import annotations
 
 import gc
+import math
 import time
 from types import SimpleNamespace
 
@@ -107,6 +108,12 @@ def predict(
     return out
 
 
+def warmup_steps(n_items: int, grad_accum: int, epochs: float, ratio: float = 0.1) -> int:
+    """Warm-up length equal to ``ratio`` of all optimizer steps (at least one)."""
+    total = math.ceil(n_items / max(grad_accum, 1)) * epochs
+    return max(1, round(ratio * total))
+
+
 def finetune(
     model,
     proc,
@@ -136,7 +143,8 @@ def finetune(
         gradient_accumulation_steps=grad_accum,
         num_train_epochs=epochs,
         learning_rate=lr,
-        warmup_ratio=0.1,
+        # explicit steps: warmup_ratio is deprecated in transformers 5.x and removed in 5.2
+        warmup_steps=warmup_steps(len(items), grad_accum, epochs),
         lr_scheduler_type="cosine",
         fp16=True,
         gradient_checkpointing=True,
