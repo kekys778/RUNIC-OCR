@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this code or data, please cite the thesis."
+title: "RUNIC-OCR: Automatic Recognition, Translation and Analysis of Ancient Germanic Runic Texts"
+type: software
+authors:
+  - family-names: Perfilev
+    given-names: Anton
+    affiliation: "HSE University"
+repository-code: "https://github.com/kekys778/RUNIC-OCR"
+url: "https://www.hse.ru/edu/vkr/1165807526"
+license: MIT
+date-released: 2026-06-03
+keywords:
+  - runic inscriptions
+  - OCR
+  - synthetic data
+  - ControlNet
+  - Qwen-VL
+  - TrOCR
+preferred-citation:
+  type: thesis
+  thesis-type: "Master's thesis"
+  title: "Automatic Recognition, Translation and Analysis of Ancient Germanic Runic Texts"
+  authors:
+    - family-names: Perfilev
+      given-names: Anton
+  institution:
+    name: "HSE University"
+  year: 2026
+  url: "https://github.com/kekys778/RUNIC-OCR"

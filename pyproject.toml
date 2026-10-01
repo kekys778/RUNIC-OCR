@@ -1,0 +1,40 @@
+[project]
+name = "runic-ocr"
+version = "1.0.0"
+description = "End-to-end OCR of Germanic runic inscriptions: photo -> Rundata transliteration, trained on SD3 + ControlNet synthetic data."
+readme = "README.md"
+license = { file = "LICENSE" }
+authors = [{ name = "Anton Perfilev" }]
+requires-python = ">=3.10"
+
+[project.urls]
+Repository = "https://github.com/kekys778/RUNIC-OCR"
+Thesis = "https://www.hse.ru/edu/vkr/1165807526"
+Adapters = "https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+extend-include = ["*.ipynb"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",  # long lines: prompts, tables and Russian comments
+    "E731",  # lambda assignments are used for short helpers
+    "E741",  # S/D/I = substitutions/deletions/insertions in error analysis
+    "B905",  # zip(strict=...) not needed for paired lists built together
+]
+
+[tool.ruff.lint.flake8-bugbear]
+# Frozen dataclass: safe to use as a default argument.
+extend-immutable-calls = ["runic_transliteration.TranslitConfig", "TranslitConfig"]
+
+[tool.ruff.lint.per-file-ignores]
+# Notebooks are archived research runs: imports appear where they are first needed
+# and cells use top-level statements, so import placement rules are relaxed.
+"*.ipynb" = ["E402", "F811", "B018", "I001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

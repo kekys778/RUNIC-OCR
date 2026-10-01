@@ -14,10 +14,6 @@
 """
 
 from dataclasses import dataclass
-from typing import Optional
-import re
-from google.colab import files as colab_files
-
 
 # ──────────────────────────────────────────────────────────────────────
 # ТАБЛИЦЫ ТРАНСЛИТЕРАЦИИ
@@ -40,52 +36,52 @@ from google.colab import files as colab_files
 
 ELDER_FUTHARK_MAP = {
     # Руна   : транслитерация   : название   : фонетическое значение
-    "ᚠ": "f",    # fehu      /f/
-    "ᚢ": "u",    # uruz      /u/
-    "ᚦ": "þ",    # thurisaz  /θ/ (unvoiced th)
-    "ᚨ": "a",    # ansuz     /a/
-    "ᚱ": "r",    # raidho    /r/
-    "ᚲ": "k",    # kaunan    /k/
-    "ᚷ": "g",    # gebo      /g/
-    "ᚹ": "w",    # wunjo     /w/
-    "ᚺ": "h",    # hagalaz   /h/
-    "ᚾ": "n",    # naudiz    /n/
-    "ᛁ": "i",    # isaz      /i/
-    "ᛃ": "j",    # jera      /j/
-    "ᛇ": "ï",    # iwaz/eihwaz  /ï/ ~ /ei/
-    "ᛈ": "p",    # pertho    /p/
-    "ᛉ": "R",    # algiz/elhaz  /z/ → /R/ (Proto-Norse)
-    "ᛊ": "s",    # sowilo    /s/
-    "ᛏ": "t",    # tiwaz     /t/
-    "ᛒ": "b",    # berkanan  /b/
-    "ᛖ": "e",    # ehwaz     /e/
-    "ᛗ": "m",    # mannaz    /m/
-    "ᛚ": "l",    # laguz     /l/
-    "ᛜ": "ŋ",    # ingwaz    /ŋ/
-    "ᛞ": "d",    # dagaz     /d/
-    "ᛟ": "o",    # othalan   /o/
+    "ᚠ": "f",  # fehu      /f/
+    "ᚢ": "u",  # uruz      /u/
+    "ᚦ": "þ",  # thurisaz  /θ/ (unvoiced th)
+    "ᚨ": "a",  # ansuz     /a/
+    "ᚱ": "r",  # raidho    /r/
+    "ᚲ": "k",  # kaunan    /k/
+    "ᚷ": "g",  # gebo      /g/
+    "ᚹ": "w",  # wunjo     /w/
+    "ᚺ": "h",  # hagalaz   /h/
+    "ᚾ": "n",  # naudiz    /n/
+    "ᛁ": "i",  # isaz      /i/
+    "ᛃ": "j",  # jera      /j/
+    "ᛇ": "ï",  # iwaz/eihwaz  /ï/ ~ /ei/
+    "ᛈ": "p",  # pertho    /p/
+    "ᛉ": "R",  # algiz/elhaz  /z/ → /R/ (Proto-Norse)
+    "ᛊ": "s",  # sowilo    /s/
+    "ᛏ": "t",  # tiwaz     /t/
+    "ᛒ": "b",  # berkanan  /b/
+    "ᛖ": "e",  # ehwaz     /e/
+    "ᛗ": "m",  # mannaz    /m/
+    "ᛚ": "l",  # laguz     /l/
+    "ᛜ": "ŋ",  # ingwaz    /ŋ/
+    "ᛞ": "d",  # dagaz     /d/
+    "ᛟ": "o",  # othalan   /o/
 }
 
 YOUNGER_FUTHARK_MAP = {
     # Younger Futhark — 16 знаков, сокращение Elder Futhark.
     # Парадокс: алфавит уменьшился, хотя фонология усложнилась →
     # один знак часто покрывает несколько фонем.
-    "ᚠ": "f",     # fe
-    "ᚢ": "u",     # ur       (также /o/, /y/, /w/)
-    "ᚦ": "þ",     # thurs
-    "ᚬ": "ą",     # oss      (носовое /ã/ → графема для /a/ и /o/)
-    "ᚱ": "r",     # reid
-    "ᚴ": "k",     # kaun     (также /g/)
-    "ᚼ": "h",     # hagall
-    "ᚾ": "n",     # nauðr
-    "ᛁ": "i",     # is       (также /e/)
-    "ᛅ": "a",     # ár
-    "ᛋ": "s",     # sol
-    "ᛏ": "t",     # tyr      (также /d/, /nd/)
-    "ᛒ": "b",     # bjarkan  (также /p/, /mb/)
-    "ᛘ": "m",     # maðr
-    "ᛚ": "l",     # logr
-    "ᛦ": "ʀ",     # yr       /R/ (Proto-Norse *z > Norse R)
+    "ᚠ": "f",  # fe
+    "ᚢ": "u",  # ur       (также /o/, /y/, /w/)
+    "ᚦ": "þ",  # thurs
+    "ᚬ": "ą",  # oss      (носовое /ã/ → графема для /a/ и /o/)
+    "ᚱ": "r",  # reid
+    "ᚴ": "k",  # kaun     (также /g/)
+    "ᚼ": "h",  # hagall
+    "ᚾ": "n",  # nauðr
+    "ᛁ": "i",  # is       (также /e/)
+    "ᛅ": "a",  # ár
+    "ᛋ": "s",  # sol
+    "ᛏ": "t",  # tyr      (также /d/, /nd/)
+    "ᛒ": "b",  # bjarkan  (также /p/, /mb/)
+    "ᛘ": "m",  # maðr
+    "ᛚ": "l",  # logr
+    "ᛦ": "ʀ",  # yr       /R/ (Proto-Norse *z > Norse R)
 }
 
 ANGLO_SAXON_FUTHORC_MAP = {
@@ -94,43 +90,43 @@ ANGLO_SAXON_FUTHORC_MAP = {
     "ᚠ": "f",
     "ᚢ": "u",
     "ᚦ": "þ",
-    "ᚩ": "o",     # os       (новый знак для /o/)
+    "ᚩ": "o",  # os       (новый знак для /o/)
     "ᚱ": "r",
-    "ᚳ": "c",     # cen      /k/ → /tʃ/ перед передними гласными
+    "ᚳ": "c",  # cen      /k/ → /tʃ/ перед передними гласными
     "ᚷ": "g",
     "ᚹ": "w",
     "ᚻ": "h",
     "ᚾ": "n",
     "ᛁ": "i",
-    "ᛄ": "g",     # ger      (вариант /j/)
-    "ᛇ": "eo",    # eoh      (двойная транслитерация)
+    "ᛄ": "g",  # ger      (вариант /j/)
+    "ᛇ": "eo",  # eoh      (двойная транслитерация)
     "ᛈ": "p",
-    "ᛉ": "x",     # eolhx    /ks/
+    "ᛉ": "x",  # eolhx    /ks/
     "ᛋ": "s",
     "ᛏ": "t",
     "ᛒ": "b",
     "ᛖ": "e",
     "ᛗ": "m",
     "ᛚ": "l",
-    "ᛝ": "ng",    # ing      /ŋ/
+    "ᛝ": "ng",  # ing      /ŋ/
     "ᛞ": "d",
-    "ᚩ": "œ",     # ethel    (омоним, контекстно)
-    "ᚪ": "a",     # ac       /a:/
-    "ᚫ": "æ",     # aesc     /æ/
-    "ᚣ": "y",     # yr       /y/
-    "ᛠ": "ea",    # ear      двойная транслитерация
-    "ᛡ": "ia",    # ior
-    "ᛣ": "q",     # cweorth  (ритуальный знак)
-    "ᛤ": "k",     # calc
-    "ᛥ": "st",    # stan     двойная транслитерация
+    "ᛟ": "œ",  # ethel    /œ/ (ᚩ = os уже задан выше)
+    "ᚪ": "a",  # ac       /a:/
+    "ᚫ": "æ",  # aesc     /æ/
+    "ᚣ": "y",  # yr       /y/
+    "ᛠ": "ea",  # ear      двойная транслитерация
+    "ᛡ": "ia",  # ior
+    "ᛣ": "q",  # cweorth  (ритуальный знак)
+    "ᛤ": "k",  # calc
+    "ᛥ": "st",  # stan     двойная транслитерация
 }
 
 # Специальные символы рунической пунктуации
 RUNIC_PUNCT_MAP = {
-    "᛫": "·",     # одиночный разделитель слов
-    "᛬": ":",     # двойной разделитель
-    "᛭": "+",     # тройной разделитель / крест
-    " ": " ",     # пробел (где он явно присутствует)
+    "᛫": "·",  # одиночный разделитель слов
+    "᛬": ":",  # двойной разделитель
+    "᛭": "+",  # тройной разделитель / крест
+    " ": " ",  # пробел (где он явно присутствует)
 }
 
 # Объединённая таблица — порядок важен:
@@ -139,7 +135,7 @@ RUNIC_PUNCT_MAP = {
 COMBINED_MAP = {
     **YOUNGER_FUTHARK_MAP,
     **ANGLO_SAXON_FUTHORC_MAP,
-    **ELDER_FUTHARK_MAP,     # Elder перезаписывает конфликты
+    **ELDER_FUTHARK_MAP,  # Elder перезаписывает конфликты
     **RUNIC_PUNCT_MAP,
 }
 
@@ -151,7 +147,8 @@ TRANSLIT_TO_RUNE = {v: k for k, v in ELDER_FUTHARK_MAP.items()}
 # КОНФИГУРАЦИЯ ТРАНСЛИТЕРАЦИИ
 # ──────────────────────────────────────────────────────────────────────
 
-@dataclass
+
+@dataclass(frozen=True)
 class TranslitConfig:
     """
     Управляет поведением транслитерации.
@@ -173,8 +170,9 @@ class TranslitConfig:
 
     lacuna_token: маркер лакуны (разрушенного фрагмента)
     """
+
     alphabet: str = "elder"
-    separator: str = ""         # слитная транслитерация (Rundata-стиль)
+    separator: str = ""  # слитная транслитерация (Rundata-стиль)
     unknown_token: str = "?"
     lacuna_token: str = "[...]"
     ambiguous_token: str = "(?)"
@@ -183,6 +181,7 @@ class TranslitConfig:
 # ──────────────────────────────────────────────────────────────────────
 # ФУНКЦИИ ТРАНСЛИТЕРАЦИИ
 # ──────────────────────────────────────────────────────────────────────
+
 
 def rune_to_translit(
     rune_char: str,
@@ -250,7 +249,7 @@ def transliterate(
         if char == "<":
             end = runic_text.find(">", i)
             if end != -1:
-                token = runic_text[i:end + 1]
+                token = runic_text[i : end + 1]
                 result_parts.append(token)
                 i = end + 1
                 continue
@@ -293,9 +292,20 @@ def translit_to_rune_string(translit_text: str) -> str:
         'ᚠᚢᚦᚨᚱᚲ'
     """
     # Многосимвольные транслитерации (сначала длинные, потом короткие)
-    MULTI_CHAR = {"eo": "ᛇ", "ea": "ᛠ", "ia": "ᛡ", "st": "ᛥ",
-                  "ng": "ᛝ", "æ": "ᚫ", "þ": "ᚦ", "ð": "ᚦ",
-                  "ŋ": "ᛜ", "ʀ": "ᛦ", "ï": "ᛇ", "ą": "ᚬ"}
+    MULTI_CHAR = {
+        "eo": "ᛇ",
+        "ea": "ᛠ",
+        "ia": "ᛡ",
+        "st": "ᛥ",
+        "ng": "ᛝ",
+        "æ": "ᚫ",
+        "þ": "ᚦ",
+        "ð": "ᚦ",
+        "ŋ": "ᛜ",
+        "ʀ": "ᛦ",
+        "ï": "ᛇ",
+        "ą": "ᚬ",
+    }
 
     result = []
     i = 0
@@ -303,7 +313,7 @@ def translit_to_rune_string(translit_text: str) -> str:
         # Проверяем двухсимвольные комбинации
         matched = False
         for multi, rune in MULTI_CHAR.items():
-            if translit_text[i:i + len(multi)] == multi:
+            if translit_text[i : i + len(multi)] == multi:
                 result.append(rune)
                 i += len(multi)
                 matched = True
@@ -319,6 +329,7 @@ def translit_to_rune_string(translit_text: str) -> str:
 # ──────────────────────────────────────────────────────────────────────
 # ОБНОВЛЁННЫЙ ГЕНЕРАТОР LABELS.CSV
 # ──────────────────────────────────────────────────────────────────────
+
 
 def convert_labels_to_translit(
     input_csv: str,
@@ -349,9 +360,7 @@ def convert_labels_to_translit(
     import pandas as pd
 
     df = pd.read_csv(input_csv)
-    df[translit_column] = df[rune_column].apply(
-        lambda x: transliterate(str(x), cfg)
-    )
+    df[translit_column] = df[rune_column].apply(lambda x: transliterate(str(x), cfg))
 
     if not keep_rune_column:
         df = df.drop(columns=[rune_column])
@@ -364,6 +373,7 @@ def convert_labels_to_translit(
 # ──────────────────────────────────────────────────────────────────────
 # ОБНОВЛЁННЫЙ ГЕНЕРАТОР СИНТЕТИКИ — СРАЗУ С ТРАНСЛИТЕРАЦИЕЙ
 # ──────────────────────────────────────────────────────────────────────
+
 
 def generate_runic_text_with_translit(
     min_len: int,
@@ -386,10 +396,7 @@ def generate_runic_text_with_translit(
         runic = rng.choice(FORMULAIC)
         if rng.random() < 0.4:
             extra_runes = list(ELDER_FUTHARK_MAP.keys())
-            extra = "".join(
-                rng.choice(extra_runes)
-                for _ in range(int(rng.integers(1, 3)))
-            )
+            extra = "".join(rng.choice(extra_runes) for _ in range(int(rng.integers(1, 3))))
             runic = runic + extra
     else:
         rune_chars = list(ELDER_FUTHARK_MAP.keys())
@@ -403,6 +410,7 @@ def generate_runic_text_with_translit(
 # ──────────────────────────────────────────────────────────────────────
 # ВАЛИДАЦИЯ РАЗМЕТКИ
 # ──────────────────────────────────────────────────────────────────────
+
 
 def validate_label_consistency(csv_path: str) -> dict:
     """
@@ -437,12 +445,14 @@ def validate_label_consistency(csv_path: str) -> dict:
 
         expected = transliterate(rune_str, cfg)
         if saved_translit.strip() != expected.strip():
-            inconsistent.append({
-                "filename": row.get("filename", "?"),
-                "rune": rune_str,
-                "saved_translit": saved_translit,
-                "expected_translit": expected,
-            })
+            inconsistent.append(
+                {
+                    "filename": row.get("filename", "?"),
+                    "rune": rune_str,
+                    "saved_translit": saved_translit,
+                    "expected_translit": expected,
+                }
+            )
 
     return {
         "total": len(df),
@@ -456,6 +466,7 @@ def validate_label_consistency(csv_path: str) -> dict:
 # СПРАВОЧНИК: ПОЛНАЯ ТАБЛИЦА ТРАНСЛИТЕРАЦИЙ
 # ──────────────────────────────────────────────────────────────────────
 
+
 def print_transliteration_table() -> None:
     """Выводит полную таблицу транслитераций для документации."""
     print("╔══════════════════════════════════════════════════════════╗")
@@ -465,23 +476,33 @@ def print_transliteration_table() -> None:
     print("╠══════╬════════════╬══════════════╬════════════════════╣")
 
     names = [
-        ("fehu", "/f/"),        ("uruz", "/u/"),
-        ("thurisaz", "/θ/"),    ("ansuz", "/a/"),
-        ("raidho", "/r/"),      ("kaunan", "/k/"),
-        ("gebo", "/g/"),        ("wunjo", "/w/"),
-        ("hagalaz", "/h/"),     ("naudiz", "/n/"),
-        ("isaz", "/i/"),        ("jera", "/j/"),
-        ("iwaz", "/ï/"),        ("pertho", "/p/"),
-        ("algiz", "/R/"),       ("sowilo", "/s/"),
-        ("tiwaz", "/t/"),       ("berkanan", "/b/"),
-        ("ehwaz", "/e/"),       ("mannaz", "/m/"),
-        ("laguz", "/l/"),       ("ingwaz", "/ŋ/"),
-        ("dagaz", "/d/"),       ("othalan", "/o/"),
+        ("fehu", "/f/"),
+        ("uruz", "/u/"),
+        ("thurisaz", "/θ/"),
+        ("ansuz", "/a/"),
+        ("raidho", "/r/"),
+        ("kaunan", "/k/"),
+        ("gebo", "/g/"),
+        ("wunjo", "/w/"),
+        ("hagalaz", "/h/"),
+        ("naudiz", "/n/"),
+        ("isaz", "/i/"),
+        ("jera", "/j/"),
+        ("iwaz", "/ï/"),
+        ("pertho", "/p/"),
+        ("algiz", "/R/"),
+        ("sowilo", "/s/"),
+        ("tiwaz", "/t/"),
+        ("berkanan", "/b/"),
+        ("ehwaz", "/e/"),
+        ("mannaz", "/m/"),
+        ("laguz", "/l/"),
+        ("ingwaz", "/ŋ/"),
+        ("dagaz", "/d/"),
+        ("othalan", "/o/"),
     ]
 
-    for (rune, translit), (name, phonetics) in zip(
-        ELDER_FUTHARK_MAP.items(), names
-    ):
+    for (rune, translit), (name, phonetics) in zip(ELDER_FUTHARK_MAP.items(), names):
         print(f"║  {rune}   ║ {translit:<10} ║ {name:<12} ║ {phonetics:<18} ║")
 
     print("╚══════╩════════════╩══════════════╩════════════════════╝")
@@ -497,11 +518,11 @@ if __name__ == "__main__":
 
     # Тесты
     test_cases = [
-        ("ᚠᚢᚦᚨᚱᚲ",     "fuþark"),
-        ("ᚨᛚᚢ",         "alu"),
-        ("ᛚᚨᚢᚲᚨᛉ",       "laukáR"),
-        ("ᛏᛁᚹᚨᛉ",         "tiwaR"),
-        ("ᛁᚾᚷᚹᚨᛉ",       "ingwaR"),
+        ("ᚠᚢᚦᚨᚱᚲ", "fuþark"),
+        ("ᚨᛚᚢ", "alu"),
+        ("ᛚᚨᚢᚲᚨᛉ", "laukaR"),
+        ("ᛏᛁᚹᚨᛉ", "tiwaR"),
+        ("ᛁᚾᚷᚹᚨᛉ", "ingwaR"),
     ]
 
     print("Тесты транслитерации:")

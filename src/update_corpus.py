@@ -33,15 +33,14 @@ from pathlib import Path
 
 import pandas as pd
 
-
 # ──────────────────────────────────────────────────────────────────────
 # Настройки по умолчанию — меняйте здесь или через аргументы CLI
 # ──────────────────────────────────────────────────────────────────────
-DEFAULT_SYNTH_DIR = "./val_dataset/new"          # папка с новыми .png
-DEFAULT_CORPUS    = "./val_dataset/real_corpus.csv"
-DEFAULT_OUTPUT    = "./val_dataset/real_corpus.csv"  # перезаписать; или укажите новый путь
-DEFAULT_SPLIT     = "train"            # split для новых строк
-DEFAULT_SOURCE    = "synth"            # source для новых строк
+DEFAULT_SYNTH_DIR = "./val_dataset/new"  # папка с новыми .png
+DEFAULT_CORPUS = "./val_dataset/real_corpus.csv"
+DEFAULT_OUTPUT = "./val_dataset/real_corpus.csv"  # перезаписать; или укажите новый путь
+DEFAULT_SPLIT = "train"  # split для новых строк
+DEFAULT_SOURCE = "synth"  # source для новых строк
 # ──────────────────────────────────────────────────────────────────────
 
 
@@ -94,15 +93,15 @@ def build_new_row(filename: str, parsed: dict, source: str, split: str) -> dict:
     """Собирает строку DataFrame для нового файла."""
     translit = parsed["translit"]
     return {
-        "filename":          filename,
-        "translit":          translit,
-        "translit_raw":      "",   # нет в имени файла; заполнить вручную при необходимости
-        "runic_approx":      "",   # нет в имени файла; заполнить вручную при необходимости
-        "n_chars":           n_chars_from_translit(translit),
-        "source":            source,
-        "split":             split,
-        "had_word_divider":  parsed["had_word_divider"],
-        "comment":           "",
+        "filename": filename,
+        "translit": translit,
+        "translit_raw": "",  # нет в имени файла; заполнить вручную при необходимости
+        "runic_approx": "",  # нет в имени файла; заполнить вручную при необходимости
+        "n_chars": n_chars_from_translit(translit),
+        "source": source,
+        "split": split,
+        "had_word_divider": parsed["had_word_divider"],
+        "comment": "",
     }
 
 
@@ -114,9 +113,9 @@ def main(
     source: str,
     dry_run: bool,
 ) -> None:
-    synth_dir_path  = Path(synth_dir)
-    corpus_file     = Path(corpus_path)
-    output_file     = Path(output_path)
+    synth_dir_path = Path(synth_dir)
+    corpus_file = Path(corpus_path)
+    output_file = Path(output_path)
 
     # ── 1. Читаем существующий корпус ──────────────────────────────────
     if not corpus_file.exists():
@@ -144,7 +143,7 @@ def main(
 
     # ── 4. Парсим и строим строки ───────────────────────────────────────
     new_rows = []
-    skipped  = []
+    skipped = []
 
     for p in new_files:
         parsed = parse_filename(p.name)
@@ -172,11 +171,13 @@ def main(
 
     # ── 6. Дописываем и сохраняем ───────────────────────────────────────
     if new_rows:
-        new_df  = pd.DataFrame(new_rows)
+        new_df = pd.DataFrame(new_rows)
         updated = pd.concat([corpus, new_df], ignore_index=True)
 
         # Восстанавливаем правильные типы для числовых колонок
-        updated["n_chars"] = pd.to_numeric(updated["n_chars"], errors="coerce").fillna(0).astype(int)
+        updated["n_chars"] = (
+            pd.to_numeric(updated["n_chars"], errors="coerce").fillna(0).astype(int)
+        )
 
         updated.to_csv(output_file, index=False, encoding="utf-8")
         print(f"[OK]  Корпус сохранён: {len(updated)} строк → {output_file}")
@@ -192,25 +193,41 @@ if __name__ == "__main__":
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )
-    parser.add_argument("--synth_dir", default=DEFAULT_SYNTH_DIR,
-                        help=f"Папка с .png (по умолч.: {DEFAULT_SYNTH_DIR})")
-    parser.add_argument("--corpus",    default=DEFAULT_CORPUS,
-                        help=f"Входной CSV корпуса (по умолч.: {DEFAULT_CORPUS})")
-    parser.add_argument("--output",    default=DEFAULT_OUTPUT,
-                        help=f"Выходной CSV (по умолч.: {DEFAULT_OUTPUT} — перезапись)")
-    parser.add_argument("--split",     default=DEFAULT_SPLIT,
-                        help=f"Значение поля split для новых строк (по умолч.: {DEFAULT_SPLIT})")
-    parser.add_argument("--source",    default=DEFAULT_SOURCE,
-                        help=f"Значение поля source для новых строк (по умолч.: {DEFAULT_SOURCE})")
-    parser.add_argument("--dry_run",   action="store_true",
-                        help="Только вывести превью, не записывать файл")
+    parser.add_argument(
+        "--synth_dir",
+        default=DEFAULT_SYNTH_DIR,
+        help=f"Папка с .png (по умолч.: {DEFAULT_SYNTH_DIR})",
+    )
+    parser.add_argument(
+        "--corpus",
+        default=DEFAULT_CORPUS,
+        help=f"Входной CSV корпуса (по умолч.: {DEFAULT_CORPUS})",
+    )
+    parser.add_argument(
+        "--output",
+        default=DEFAULT_OUTPUT,
+        help=f"Выходной CSV (по умолч.: {DEFAULT_OUTPUT} — перезапись)",
+    )
+    parser.add_argument(
+        "--split",
+        default=DEFAULT_SPLIT,
+        help=f"Значение поля split для новых строк (по умолч.: {DEFAULT_SPLIT})",
+    )
+    parser.add_argument(
+        "--source",
+        default=DEFAULT_SOURCE,
+        help=f"Значение поля source для новых строк (по умолч.: {DEFAULT_SOURCE})",
+    )
+    parser.add_argument(
+        "--dry_run", action="store_true", help="Только вывести превью, не записывать файл"
+    )
 
     args = parser.parse_args()
     main(
-        synth_dir   = args.synth_dir,
-        corpus_path = args.corpus,
-        output_path = args.output,
-        split       = args.split,
-        source      = args.source,
-        dry_run     = args.dry_run,
+        synth_dir=args.synth_dir,
+        corpus_path=args.corpus,
+        output_path=args.output,
+        split=args.split,
+        source=args.source,
+        dry_run=args.dry_run,
     )

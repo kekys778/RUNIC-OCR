@@ -1,155 +1,165 @@
-# RUNIC-OCR — распознавание древнегерманских рунических надписей
+# RUNIC-OCR — reading Germanic runic inscriptions from photos
 
-Код, данные и материалы магистерской ВКР
-**«Автоматическое распознавание, перевод и анализ древнегерманских рунических текстов»**
-(НИУ ВШЭ, факультет гуманитарных наук, ОП «Компьютерная лингвистика», 2026).
+[![CI](https://github.com/kekys778/RUNIC-OCR/actions/workflows/ci.yml/badge.svg)](https://github.com/kekys778/RUNIC-OCR/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](pyproject.toml)
+[![Adapters on HF](https://img.shields.io/badge/%F0%9F%A4%97%20adapters-runic--ocr--qwen--vl--lora-yellow.svg)](https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora)
+[![Code style: ruff](https://img.shields.io/badge/code%20style-ruff-261230.svg)](https://github.com/astral-sh/ruff)
 
-- **Автор:** Перфильев Антон Юрьевич, группа МКЛНГ241
-- **Научный руководитель:** Макаров Илья Андреевич, PhD, факультет компьютерных наук НИУ ВШЭ
-- **Текст работы:** [`thesis/VKR_Perfilev_2026.pdf`](thesis/VKR_Perfilev_2026.pdf) · [страница ВКР на hse.ru](https://www.hse.ru/edu/vkr/1165807526)
-- **Презентация защиты:** [`thesis/defense/VKR_defense.pptx`](thesis/defense/VKR_defense.pptx)
+**English** · [Русский](README.ru.md)
 
-> *English summary.* End-to-end OCR of Scandinavian runic inscriptions: photo → Latin transliteration
-> (Rundata convention). Models are trained **only on synthetic images** (Stable Diffusion 3 + ControlNet Canny)
-> and evaluated on a real gold set of 113 lines. TrOCR (LoRA) is compared with Qwen-VL models (QLoRA).
-> Best result: **Qwen2.5-VL-7B, CER 54.27 %** on real photos (zero-shot is > 100 %). The main error source
-> is the synthetic-to-real domain gap (+32…+42 pp); TrOCR overfits the synthetic data and collapses on real photos.
+End-to-end OCR of Scandinavian runic inscriptions: **photo → Latin transliteration** in the Rundata
+convention. No labelled corpus of "inscription photo ↔ transliteration" exists, so the models are
+trained **only on synthetic images** (Stable Diffusion 3 + ControlNet Canny) and evaluated **only on
+real photos** (a hand-built gold set of 113 lines).
 
----
+Code, data and results of the master's thesis *"Automatic recognition, translation and analysis of
+ancient Germanic runic texts"* (HSE University, MA "Computational Linguistics", 2026),
+Anton Perfilev; supervisor Ilya Makarov, PhD.
+[Thesis PDF](thesis/VKR_Perfilev_2026.pdf) · [HSE page](https://www.hse.ru/edu/vkr/1165807526) ·
+[Defense slides](thesis/defense/VKR_defense.pptx)
 
-## Суть работы
+![Pipeline overview](results/figures/runic_pipeline_overview.svg)
 
-Размеченного корпуса «фото надписи ↔ транслитерация» для германских рун не существует, поэтому сигналы
-разделены: **обучение — только на синтетике**, **оценка — только на реальном золотом множестве**.
+## Key results
 
-![Схема конвейера](results/figures/runic_pipeline_overview.svg)
+| | |
+|---|---|
+| **Best model** | Qwen2.5-VL-7B + QLoRA, **CER 54.3 %** on real photos (95 % CI 48.0–61.3) |
+| **Zero-shot** | every model is above 100 % CER, so the task is out of reach without adaptation |
+| **Main error source** | the synthetic-to-real domain gap: +32 to +42 pp CER between synthetic val and real photos |
+| **TrOCR vs. VLMs** | TrOCR fits the synthetic data (14 % CER) but collapses on real photos; Qwen-VL transfers better |
 
-1. **Лексикон.** Транслитерации из Rundata / Runor и сводки *Gamla runor* (Christer Hamp) токенизируются,
-   фильтруются по алфавиту Σ (33 знака конвенции Rundata), слова с частотой ≥ 2 сэмплируются с температурой 0,7
-   и собираются во фразы из 1–4 слов с разделителем `᛬` (U+16EC).
-2. **Рендер.** Строка переводится в руны обратимой таблицей (`transliteration → runes → transliteration` проверяется
-   на всём корпусе) и отрисовывается шрифтом Noto Sans Runic на холсте 1024×1024.
-3. **Синтез.** Stable Diffusion 3 Medium + ControlNet `InstantX/SD3-Controlnet-Canny`
-   (Canny 50/150, conditioning scale 0,65, 28 шагов, CFG 7,0); inpainting-режим используется как геометрически
-   точный вариант. Сравнение модальностей ControlNet — в [`results/figures/`](results/figures/).
-4. **Распознавание.** Сквозные (end-to-end) модели без этапа детекции:
-   TrOCR-BASE/LARGE + LoRA и Qwen2-VL / Qwen2.5-VL / Qwen3-VL + QLoRA (4-bit NF4).
-   Выход — латинская транслитерация, поэтому расширять токенизатор рунами не нужно.
-5. **Оценка.** CER (основная), WER, NED, sequence accuracy, 95 % бутстрэп-интервалы на gold set.
-   Слова gold set исключены из обучающей синтетики (контроль лексической утечки).
-6. **Перевод (демонстрация).** Транслитерация может подаваться в LLM-модуль перевода из смежной работы
-   ([dimapchik/runic_ai](https://github.com/dimapchik/runic_ai)); собственным вкладом этой ВКР он не является.
+![CER on synthetic validation vs. real gold set](results/figures/cer_synth_vs_gold.png)
 
-## Результаты
+<details>
+<summary>Full table (thesis table 5.4, %)</summary>
 
-Синтетика: 4 647 изображений (train 4 432 / val 215 после удаления 38 строк, пересекающихся с gold set).
-Gold set: 113 строк реальных надписей. Одна NVIDIA T4, смешанная точность.
-
-**После дообучения на синтетике** (таблица 5.4 ВКР), %:
-
-| Модель | CER synth val | **CER gold** (95 % ДИ) | WER gold | SeqAcc | Δ CER (gold − synth) |
+| Model | CER synth val | **CER gold** (95 % CI) | WER gold | SeqAcc | Δ CER (gold − synth) |
 |---|---:|---:|---:|---:|---:|
-| TrOCR-BASE + LoRA | 28,40 | 93,75 (93,0–95,1) | 100,0 | 0,0 | +65,35 |
-| TrOCR-LARGE + LoRA | 14,27 | 95,05 (93,9–96,1) | 100,0 | 0,0 | +80,78 |
-| Qwen2-VL-2B + QLoRA | 41,70 | 73,97 (70,5–77,5) | 98,24 | 0,88 | +32,27 |
-| **Qwen2.5-VL-7B + QLoRA** | **12,03** | **54,27 (48,0–61,3)** | **81,18** | **8,85** | +42,24 |
-| Qwen3-VL-2B + QLoRA | 33,39 | 73,55 (69,9–77,5) | 97,65 | 1,77 | +40,16 |
-| Qwen3-VL-8B + QLoRA | 34,69 | 67,86 (62,2–73,6) | 95,29 | 0,88 | +33,17 |
+| TrOCR-BASE + LoRA | 28.40 | 93.75 (93.0–95.1) | 100.0 | 0.0 | +65.35 |
+| TrOCR-LARGE + LoRA | 14.27 | 95.05 (93.9–96.1) | 100.0 | 0.0 | +80.78 |
+| Qwen2-VL-2B + QLoRA | 41.70 | 73.97 (70.5–77.5) | 98.24 | 0.88 | +32.27 |
+| **Qwen2.5-VL-7B + QLoRA** | **12.03** | **54.27 (48.0–61.3)** | **81.18** | **8.85** | +42.24 |
+| Qwen3-VL-2B + QLoRA | 33.39 | 73.55 (69.9–77.5) | 97.65 | 1.77 | +40.16 |
+| Qwen3-VL-8B + QLoRA | 34.69 | 67.86 (62.2–73.6) | 95.29 | 0.88 | +33.17 |
 
-**Без адаптации (zero-shot)** все модели несостоятельны: CER на gold set от 100,53 % (TrOCR-LARGE)
-до 724,55 % (Qwen2-VL-2B). Полная таблица — [`results/metrics/summary.csv`](results/metrics/summary.csv).
+Zero-shot rows and CIs: [`results/metrics/summary.csv`](results/metrics/summary.csv).
+All 113 predictions of the best model: [`results/predictions/qwen25vl-7b_finetuned_gold.csv`](results/predictions/qwen25vl-7b_finetuned_gold.csv).
+</details>
 
-Выводы:
-- задача недоступна без адаптации; дообучение на синтетике снижает CER в разы, но порог практической
-  применимости (CER < 20 %) не достигнут;
-- главный источник ошибки — синтетически-реальный доменный сдвиг (+32…+42 п. п.), а не ёмкость модели;
-- TrOCR хорошо подгоняется к синтетике, но на реальных фото выдаёт почти всегда один токен (`ek`),
-  а мультимодальный прайор Qwen-VL переносится лучше;
-- типичные ошибки лучшей модели: замены близких рун (k/g, t/þ, b/þ, i/e, u/o, R/r, m/n) и откат к частотным
-  `ek` / `alu` на коротких архаичных надписях. Все 113 предсказаний —
-  [`results/predictions/qwen25vl-7b_finetuned_gold.csv`](results/predictions/qwen25vl-7b_finetuned_gold.csv).
+Typical errors of the best model are confusions between visually close runes (k/g, t/þ, b/þ, i/e, u/o,
+R/r, m/n) and a fallback to frequent formulas (`ek`, `alu`) on short archaic inscriptions.
 
-## Структура репозитория
+## Method in five steps
+
+1. **Lexicon.** Transliterations from Rundata/Runor, RuneS, Danske Runeindskrifter and *Gamla runor*
+   are tokenized and filtered by the 33-symbol Rundata alphabet. Words with frequency ≥ 2 are sampled
+   (temperature 0.7) into 1–4-word phrases joined by the `᛬` divider.
+2. **Rendering.** Phrases are mapped to Unicode runes by a reversible table (`translit → runes → translit`
+   is verified on the whole lexicon) and rendered with Noto Sans Runic on a 1024 × 1024 canvas.
+3. **Synthesis.** SD3 Medium + `InstantX/SD3-Controlnet-Canny` (Canny 50/150, conditioning scale 0.65,
+   28 steps, CFG 7.0) produces 4,647 stone-carving images. Canny was chosen over five other
+   ControlNet modalities ([comparison](notebooks/02_synthesis/01_controlnet_modalities_comparison.ipynb)).
+4. **Recognition.** End-to-end models with no detection stage: TrOCR-BASE/LARGE + LoRA and
+   Qwen2-VL / Qwen2.5-VL / Qwen3-VL + QLoRA (4-bit NF4). The output is Latin transliteration, so no
+   tokenizer extension is needed.
+5. **Evaluation.** CER (primary), WER, NED and sequence accuracy, with bootstrap 95 % CIs on the gold set.
+   Gold-set words are removed from the synthetic training data to control lexical leakage.
+
+## Repository layout
 
 ```
 RUNIC-OCR/
-├── thesis/
-│   ├── VKR_Perfilev_2026.pdf          # финальный текст ВКР (03.06.2026)
-│   ├── latex/                         # LaTeX-исходник (черновик глав 1–4 от 02.06), refs.bib, схема конвейера (TikZ)
-│   └── defense/VKR_defense.pptx       # презентация защиты
-├── data/
-│   ├── gold_set/                      # 113 реальных строк: изображения + real_corpus.csv (эталонная транслитерация)
-│   ├── synthetic/                     # labels_runic.csv (4 647 меток) + примеры изображений
-│   └── sources/                       # выгрузки баз для лексикона (Gamla runor, runer.ku.dk), шрифт Noto Sans Runic
-├── src/
-│   ├── runic_ocr_experiments.py       # единый стенд: данные, TrOCR/Qwen-VL, обучение, оценка, абляция
-│   ├── runic_transliteration.py       # руны (Unicode) ↔ транслитерация Rundata
-│   ├── synth_dataset_generation.py    # ранний генератор синтетики (SD inpainting)
-│   ├── update_corpus.py               # пополнение real_corpus.csv новыми изображениями
-│   └── parser_runes.py                # парсер базы RuneS
-├── notebooks/
-│   ├── 01_data_collection/            # парсинг баз, нормализация фото, проверка gold set
-│   ├── 02_synthesis/                  # SD3 + ControlNet Canny (финал), Depth, сравнение модальностей ControlNet
-│   └── 03_training_eval/              # эксперименты TrOCR / Qwen-VL (Kaggle, с выводами)
-├── results/
-│   ├── metrics/                       # сводные метрики всех моделей
-│   ├── predictions/                   # предсказания на gold set
-│   └── figures/                       # схема конвейера, сравнение ControlNet
-└── requirements.txt
+├── notebooks/                  # the research story, in order; see notebooks/README.md
+│   ├── 01_data_collection/     # runer.ku.dk scraper, gold-set photo normalization
+│   ├── 02_synthesis/           # ControlNet comparison, SD3 + Canny (final), SD3 + Depth
+│   └── 03_training_eval/       # TrOCR / Qwen-VL training and evaluation
+├── src/                        # reusable Python modules
+│   ├── runic_ocr_experiments.py    # unified harness: data, models, training, metrics, ablation
+│   ├── runic_transliteration.py    # Unicode runes <-> Rundata transliteration
+│   ├── synth_dataset_generation.py # early SDXL-inpainting generator
+│   ├── update_corpus.py            # append new images to real_corpus.csv
+│   └── parser_runes.py             # RuneS database scraper
+├── data/                       # gold set (113 real lines), synthetic labels + samples, sources; see data/README.md
+├── results/                    # metrics, predictions, figures
+├── scripts/plot_results.py     # regenerates results/figures/cer_synth_vs_gold.png
+├── tests/                      # unit tests (CPU-only)
+└── thesis/                     # PDF, LaTeX sources, defense slides
 ```
 
-## Запуск
+## Getting started
 
-Эксперименты выполнялись в Kaggle / Colab (одна GPU ~16 ГБ). Основной сценарий —
-ноутбук [`notebooks/03_training_eval/experiments_qwen_trocr.ipynb`](notebooks/03_training_eval/experiments_qwen_trocr.ipynb)
-или тот же код в виде модуля [`src/runic_ocr_experiments.py`](src/runic_ocr_experiments.py):
+Experiments were run on Kaggle/Colab with one ~16 GB GPU (NVIDIA T4).
 
 ```bash
-pip install -r requirements.txt
+git clone https://github.com/kekys778/RUNIC-OCR.git && cd RUNIC-OCR
+pip install -r requirements.txt          # full GPU stack (torch, transformers, diffusers, ...)
+pip install -r requirements-dev.txt      # lightweight: lint + tests + plotting
+pytest                                   # CPU-only unit tests
 ```
+
+Train and evaluate a model with the unified harness. It is the same code as
+[`notebooks/03_training_eval/01_experiments_trocr_qwen.ipynb`](notebooks/03_training_eval/01_experiments_trocr_qwen.ipynb):
 
 ```python
-from runic_ocr_experiments import prepare_data, run_train, run_eval
-synth_df, gold_df = prepare_data()   # пути к синтетике и gold set задаются в GlobalConfig
-run_train("qwen25vl-7b")             # ключи моделей: trocr-base, trocr-large, qwen2vl-2b, qwen25vl-7b, qwen3vl-2b, qwen3vl-8b, ...
-run_eval("qwen25vl-7b")              # CER / WER / NED / SeqAcc + бутстрэп-ДИ на gold set
+import sys
+
+sys.path.append("src")
+from runic_ocr_experiments import CFG, prepare_data, run_eval, run_train
+
+CFG.SYNTH_ZIP = "/path/to/synthetic_images"  # folder or zip
+CFG.GOLD_SOURCE = "data/gold_set"  # 113 real lines + real_corpus.csv
+synth_df, gold_df = prepare_data()
+
+run_train("qwen25vl-7b", synth_df=synth_df, gold_df=gold_df)
+# CER / WER / NED / SeqAcc + bootstrap CI on the gold set
+run_eval("qwen25vl-7b", gold_df=gold_df, synth_df=synth_df)
 ```
 
-Генерация синтетики — [`notebooks/02_synthesis/final_synth_sd3_controlnet_canny.ipynb`](notebooks/02_synthesis/final_synth_sd3_controlnet_canny.ipynb)
-(нужен доступ к `stabilityai/stable-diffusion-3-medium-diffusers` и HF-токен в переменной окружения / секретах Kaggle).
+Model keys: `trocr-base`, `trocr-large`, `qwen2vl-2b`, `qwen25vl-7b`, `qwen3vl-2b`, `qwen3vl-8b`.
+To evaluate a published adapter without training, download it from
+[Hugging Face](https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora) and pass its folder as
+`run_eval(..., ckpt_dir=...)`.
 
-## Где лежат большие артефакты
+The synthetic corpus is generated by
+[`notebooks/02_synthesis/02_synth_sd3_canny_final.ipynb`](notebooks/02_synthesis/02_synth_sd3_canny_final.ipynb).
+It needs access to `stabilityai/stable-diffusion-3-medium-diffusers`. The `HF_TOKEN` secret is read from an environment variable or Kaggle/Colab secrets and is never stored in notebooks.
 
-В git не помещаются веса моделей и полный синтетический корпус (~11 ГБ). Они хранятся здесь:
+## Large artifacts
 
-| Артефакт | Где |
+Model weights and the full synthetic corpus (~11 GB) are not stored in git:
+
+| Artifact | Location |
 |---|---|
-| Лучшие QLoRA-адаптеры Qwen2.5-VL-7B / Qwen3-VL-8B / Qwen3-VL-2B | **публично:** [HF `AntoniusPerf/runic-ocr-qwen-vl-lora`](https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora) |
-| Чекпойнты TrOCR (LoRA) | HF: `AntoniusPerf/trocr-checkpoints` (приватно) |
-| Синтетический корпус ВКР (SD3 + Canny, 4 647 изобр.) | Kaggle: `zhopa228/synth-final` (приватно) |
-| Gold set | Kaggle: `zhopa228/val-dataset` (копия — в `data/gold_set/`) |
-| Синтетика SD3 + ControlNet Depth (продолжение после защиты) | HF dataset: `AntoniusPerf/runic-synth-sd3-depth` |
-| Исходные выгрузки баз | Kaggle: `zhopa228/runic-inscriptions`, `zhopa228/runer-ku`, `zhopa228/christerhamp-gamla-runor-with-filenames` |
+| Best QLoRA adapters (Qwen2.5-VL-7B / Qwen3-VL-8B / Qwen3-VL-2B) | **public:** [HF `AntoniusPerf/runic-ocr-qwen-vl-lora`](https://huggingface.co/AntoniusPerf/runic-ocr-qwen-vl-lora) |
+| TrOCR checkpoints (LoRA) | HF `AntoniusPerf/trocr-checkpoints` (private) |
+| Thesis synthetic corpus (SD3 + Canny, 4,647 images) | Kaggle `zhopa228/synth-final` (private) |
+| Gold set | Kaggle `zhopa228/val-dataset` (copy in [`data/gold_set/`](data/gold_set/)) |
+| SD3 + Depth synthetic data (post-defense) | HF dataset `AntoniusPerf/runic-synth-sd3-depth` |
+| Raw database exports | Kaggle `zhopa228/runic-inscriptions`, `zhopa228/runer-ku`, `zhopa228/christerhamp-gamla-runor-with-filenames` |
 
-## Источники данных
+## Data sources
 
-- [Samnordisk runtextdatabas (Rundata)](https://www.runforum.nordiska.uu.se/srd/), Уппсальский университет
-- [Söktjänsten Runor](https://app.raa.se/open/runor/), Riksantikvarieämbetet
+- [Samnordisk runtextdatabas (Rundata)](https://www.runforum.nordiska.uu.se/srd/), Uppsala University
+- [Söktjänsten Runor](https://app.raa.se/open/runor/), Swedish National Heritage Board
 - [RuneS — Runic Writing in the Germanic Languages](https://www.runesdb.de/)
-- [Danske Runeindskrifter](https://runer.ku.dk/), *Gamla runor* (Christer Hamp)
+- [Danske Runeindskrifter](https://runer.ku.dk/) and *Gamla runor* (Christer Hamp)
 
-Права на тексты и фотографии принадлежат соответствующим базам и музеям; данные приведены для исследовательских целей.
+Rights to texts and photos belong to the respective databases and museums; the data are used for research.
+The translation demo uses the LLM module from the related project
+[dimapchik/runic_ai](https://github.com/dimapchik/runic_ai), which is not a contribution of this thesis.
 
-## Цитирование
+## Citation
 
 ```bibtex
 @mastersthesis{perfilev2026runic,
-  author = {Перфильев, Антон Юрьевич},
-  title  = {Автоматическое распознавание, перевод и анализ древнегерманских рунических текстов},
-  school = {НИУ «Высшая школа экономики»},
+  author = {Perfilev, Anton},
+  title  = {Automatic Recognition, Translation and Analysis of Ancient Germanic Runic Texts},
+  school = {HSE University},
   year   = {2026},
   url    = {https://github.com/kekys778/RUNIC-OCR}
 }
 ```
 
-Код распространяется по лицензии MIT (см. [`LICENSE`](LICENSE)).
+See also [`CITATION.cff`](CITATION.cff). Code is released under the MIT license ([`LICENSE`](LICENSE)).
