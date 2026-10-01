@@ -1,5 +1,7 @@
 # RUNIC-OCR — распознавание древнегерманских рунических надписей
 
+[English](README.md) · **Русский**
+
 Код, данные и материалы магистерской ВКР
 **«Автоматическое распознавание, перевод и анализ древнегерманских рунических текстов»**
 (НИУ ВШЭ, факультет гуманитарных наук, ОП «Компьютерная лингвистика», 2026).
@@ -31,7 +33,7 @@
    на всём корпусе) и отрисовывается шрифтом Noto Sans Runic на холсте 1024×1024.
 3. **Синтез.** Stable Diffusion 3 Medium + ControlNet `InstantX/SD3-Controlnet-Canny`
    (Canny 50/150, conditioning scale 0,65, 28 шагов, CFG 7,0); inpainting-режим используется как геометрически
-   точный вариант. Сравнение модальностей ControlNet — в [`results/figures/`](results/figures/).
+   точный вариант. Сравнение модальностей ControlNet — [ноутбук](notebooks/02_synthesis/01_controlnet_modalities_comparison.ipynb) и [`results/figures/`](results/figures/).
 4. **Распознавание.** Сквозные (end-to-end) модели без этапа детекции:
    TrOCR-BASE/LARGE + LoRA и Qwen2-VL / Qwen2.5-VL / Qwen3-VL + QLoRA (4-bit NF4).
    Выход — латинская транслитерация, поэтому расширять токенизатор рунами не нужно.
@@ -44,6 +46,8 @@
 
 Синтетика: 4 647 изображений (train 4 432 / val 215 после удаления 38 строк, пересекающихся с gold set).
 Gold set: 113 строк реальных надписей. Одна NVIDIA T4, смешанная точность.
+
+![CER на синтетике и на реальных фото](results/figures/cer_synth_vs_gold.png)
 
 **После дообучения на синтетике** (таблица 5.4 ВКР), %:
 
@@ -87,25 +91,30 @@ RUNIC-OCR/
 │   ├── synth_dataset_generation.py    # ранний генератор синтетики (SD inpainting)
 │   ├── update_corpus.py               # пополнение real_corpus.csv новыми изображениями
 │   └── parser_runes.py                # парсер базы RuneS
-├── notebooks/
-│   ├── 01_data_collection/            # парсинг баз, нормализация фото, проверка gold set
-│   ├── 02_synthesis/                  # SD3 + ControlNet Canny (финал), Depth, сравнение модальностей ControlNet
+├── notebooks/                         # пронумерованы в порядке исследования, см. notebooks/README.md
+│   ├── 01_data_collection/            # парсинг баз, нормализация фото, LLM-бейзлайн
+│   ├── 02_synthesis/                  # сравнение ControlNet, SD3 + Canny (финал), SD3 + Depth
 │   └── 03_training_eval/              # эксперименты TrOCR / Qwen-VL (Kaggle, с выводами)
 ├── results/
 │   ├── metrics/                       # сводные метрики всех моделей
 │   ├── predictions/                   # предсказания на gold set
-│   └── figures/                       # схема конвейера, сравнение ControlNet
-└── requirements.txt
+│   └── figures/                       # схема конвейера, сравнение ControlNet, график CER
+├── scripts/plot_results.py            # перестроение results/figures/cer_synth_vs_gold.png
+├── tests/                             # юнит-тесты (CPU)
+├── pyproject.toml                     # настройки ruff / pytest
+└── requirements.txt / requirements-dev.txt
 ```
 
 ## Запуск
 
 Эксперименты выполнялись в Kaggle / Colab (одна GPU ~16 ГБ). Основной сценарий —
-ноутбук [`notebooks/03_training_eval/experiments_qwen_trocr.ipynb`](notebooks/03_training_eval/experiments_qwen_trocr.ipynb)
+ноутбук [`notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb`](notebooks/03_training_eval/02_experiments_trocr_qwen.ipynb)
 или тот же код в виде модуля [`src/runic_ocr_experiments.py`](src/runic_ocr_experiments.py):
 
 ```bash
-pip install -r requirements.txt
+pip install -r requirements.txt       # полный GPU-стек
+pip install -r requirements-dev.txt   # линтер, тесты, графики
+pytest                                # юнит-тесты (CPU)
 ```
 
 ```python
@@ -115,8 +124,9 @@ run_train("qwen25vl-7b")             # ключи моделей: trocr-base, tr
 run_eval("qwen25vl-7b")              # CER / WER / NED / SeqAcc + бутстрэп-ДИ на gold set
 ```
 
-Генерация синтетики — [`notebooks/02_synthesis/final_synth_sd3_controlnet_canny.ipynb`](notebooks/02_synthesis/final_synth_sd3_controlnet_canny.ipynb)
-(нужен доступ к `stabilityai/stable-diffusion-3-medium-diffusers` и HF-токен в переменной окружения / секретах Kaggle).
+Генерация синтетики — [`notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb`](notebooks/02_synthesis/03_synth_sd3_canny_final.ipynb)
+(нужен доступ к `stabilityai/stable-diffusion-3-medium-diffusers`). Секреты (`HF_TOKEN`, `GROQ_API_KEY`, `GOOGLE_API_KEY`)
+читаются из переменных окружения или секретов Kaggle/Colab и никогда не хранятся в ноутбуках.
 
 ## Где лежат большие артефакты
 
