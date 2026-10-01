@@ -31,6 +31,15 @@ The RuneS database is scraped by [`src/parser_runes.py`](../src/parser_runes.py)
 | 01 | [`01_experiments_trocr_qwen`](03_training_eval/01_experiments_trocr_qwen.ipynb) | **Unified harness**: TrOCR vs. Qwen-VL, all thesis metrics | Kaggle T4 | **final** |
 | 02 | [`02_qwen_vl_train_hf_shards`](03_training_eval/02_qwen_vl_train_hf_shards.ipynb) | Qwen-VL on the extended (Canny + Depth) corpus | Kaggle 2×T4 | post-defense |
 
+## 4 · Further work (post-thesis, fire-and-forget on Kaggle)
+
+| # | Notebook | What it does | Runtime | Status |
+|---|---|---|---|---|
+| E1 | [`E1_reeval_published_adapters`](04_further_work/E1_reeval_published_adapters.ipynb) | Re-evaluate the public adapters: reproduction check, inscription-level CIs, significance, 5-best | Kaggle T4, ≈ 1–1.5 h | ready |
+| E2 | [`E2_fewshot_real_cv`](04_further_work/E2_fewshot_real_cv.ipynb) | Few-shot fine-tuning on real photos, grouped 5-fold CV, learning curve | Kaggle T4, ≈ 4–6 h | ready |
+
+How to run them and what the CPU error analysis (E0) found: [`04_further_work/README.md`](04_further_work/README.md).
+
 Early prototypes and exploratory notebooks (Gemini/Groq baselines, a Colab version of the synthesis
 pipeline, a first Qwen2-VL run) were removed from the tree; they remain in the git history.
 

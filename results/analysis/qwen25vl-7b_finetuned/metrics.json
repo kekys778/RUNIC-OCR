@@ -1,0 +1,120 @@
+{
+  "predictions": "results/predictions/qwen25vl-7b_finetuned_gold.csv",
+  "CER": 54.27,
+  "WER": 81.18,
+  "NED": 59.37,
+  "SeqAcc": 8.85,
+  "n_lines": 113,
+  "n_inscriptions": 28,
+  "ci95_line_bootstrap": [
+    48.0,
+    61.3
+  ],
+  "ci95_inscription_bootstrap": [
+    42.0,
+    70.5
+  ],
+  "errors": {
+    "S": 137,
+    "D": 364,
+    "I": 14
+  },
+  "error_shares": {
+    "S_frac": 0.266,
+    "D_frac": 0.707,
+    "I_frac": 0.027
+  },
+  "top_substitutions": [
+    {
+      "ref": "i",
+      "pred": "k",
+      "count": 10
+    },
+    {
+      "ref": "a",
+      "pred": "h",
+      "count": 9
+    },
+    {
+      "ref": "u",
+      "pred": "l",
+      "count": 5
+    },
+    {
+      "ref": "R",
+      "pred": "m",
+      "count": 4
+    },
+    {
+      "ref": "a",
+      "pred": "e",
+      "count": 4
+    },
+    {
+      "ref": "m",
+      "pred": "R",
+      "count": 4
+    },
+    {
+      "ref": "l",
+      "pred": "e",
+      "count": 3
+    },
+    {
+      "ref": "r",
+      "pred": "e",
+      "count": 3
+    },
+    {
+      "ref": "l",
+      "pred": "ï",
+      "count": 2
+    },
+    {
+      "ref": "i",
+      "pred": "h",
+      "count": 2
+    },
+    {
+      "ref": "r",
+      "pred": "l",
+      "count": 2
+    },
+    {
+      "ref": "a",
+      "pred": "R",
+      "count": 2
+    },
+    {
+      "ref": "a",
+      "pred": "b",
+      "count": 2
+    },
+    {
+      "ref": "n",
+      "pred": "a",
+      "count": 2
+    },
+    {
+      "ref": "r",
+      "pred": "k",
+      "count": 2
+    }
+  ],
+  "repeated_predictions": {
+    "ek": 18,
+    "alu": 7,
+    "stain": 3,
+    "na": 3
+  },
+  "vs_baseline": {
+    "baseline": "qwen3vl-2b_zeroshot_gold.csv",
+    "baseline_CER": 364.81,
+    "delta_CER": -310.54,
+    "ci95": [
+      -412.0,
+      -239.6
+    ],
+    "significant": true
+  }
+}
